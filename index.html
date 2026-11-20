@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>outly</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -15,6 +15,7 @@
 <link rel="icon" href="icon-192.png?v=1">
 <style>
 :root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
@@ -446,6 +447,16 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .bud-form{display:flex;flex-direction:column;gap:14px}
 .bud-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:12px}
 
+/* ---------- phone helpers ---------- */
+.rt-short{display:none}
+.tabbar{display:none}
+.more{display:flex;flex-direction:column}
+.more-link{display:flex;align-items:center;gap:14px;padding:14px 4px;border-top:1px solid var(--line);font-size:16px;text-decoration:none;color:var(--ink);width:100%}
+.more-link:first-child{border-top:0}
+.more-link .ic{width:20px;height:20px;color:var(--muted)}
+.more-link.on,.more-link.on .ic{color:var(--pink-ink)}
+@media (pointer:coarse){ .fl input,.login input,.add-row input{font-size:16px} }
+
 /* ---------- responsive ---------- */
 @media (min-width:981px){
   .shell.is-collapsed{grid-template-columns:76px minmax(0,1fr)}
@@ -520,6 +531,76 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
   .grid4{grid-template-columns:minmax(0,1fr)}
   .seg{margin-left:0}
 }
+
+/* ---------- phone: компактно, меню снизу как в бюджете ---------- */
+@media (max-width:700px){
+  body{background:var(--canvas);padding-block:4px calc(88px + env(safe-area-inset-bottom,0px))}
+  .shell{display:block;border:0;border-radius:0;padding:0;background:transparent;position:relative}
+  .side{position:static;background:transparent;border:0;padding:6px 0 12px;min-height:0;gap:0;color:var(--ink)}
+  .side .nav,.side-note,.side-bad,.collapse-btn{display:none}
+  .brand{padding:0;min-height:0}
+  .logo{font-size:25px;color:var(--ink)}
+  .logo i{width:6px;height:6px;margin:0 0 4px 2px}
+  .main{gap:12px;padding:0}
+  .top{gap:8px}
+  .sync{position:absolute;top:6px;right:0;padding:5px 10px;font-size:11px}
+  .rule{flex-basis:100%;padding:4px;gap:10px;border-width:1px}
+  .rule-ic{width:30px;height:30px}
+  .rule-ic .ic{width:15px;height:15px}
+  .rule-text{font-size:12.5px}
+  .rt-long{display:none}
+  .rt-short{display:inline}
+  .rule-state{display:inline-flex;font-size:11px;padding:5px 9px}
+  .title-row{flex-wrap:nowrap;align-items:flex-start;gap:10px}
+  h1{font-size:26px;letter-spacing:-.03em}
+  .sub{gap:6px;margin-top:8px}
+  .sub span{font-size:11px;padding:4px 9px}
+  .sub span:nth-child(n+3){display:none}
+  .actions .btn-black,.actions .btn-ghost{display:none}
+  .btn-round{width:34px;height:34px}
+  .btn-round .ic{width:16px;height:16px}
+  .seg{display:none}
+  .weekpill{font-size:12px;padding:3px}
+  .weekpill button{width:28px;height:28px}
+  .weekpill span{min-width:0;padding:0 4px}
+  .daypills{gap:3px;margin-bottom:10px}
+  .daypills button{padding:5px 0 4px;font-size:10px;border-radius:10px}
+  .daypills button b{font-size:14px}
+  .wk{grid-template-columns:42px minmax(0,1fr);gap:8px}
+  .wk-corner,.wk-head{display:none}
+  .wk-axis{padding:4px 6px 0 0;margin-right:-8px}
+  .ax-time{font-size:11px}
+  .ax-label{font-size:9.5px}
+  .ev{padding:11px 12px;border-radius:12px}
+  .ev-top{margin-bottom:4px}
+  .ev-title{font-size:14.5px}
+  .ev-note,.ev-time{font-size:12px}
+  .chip-ic{width:24px;height:24px}
+  .chip-ic .ic{width:13px;height:13px}
+  .meal{font-size:12px;padding:7px 12px}
+  .work-strip,.free-strip{min-height:30px;font-size:10.5px}
+  .sleep{min-height:30px;font-size:11px}
+  .legend{font-size:11px;gap:6px 12px}
+  .panel{padding:16px;border-radius:18px}
+  .panel h2{font-size:17px}
+  .lead{font-size:12.5px}
+  .tl-row{grid-template-columns:42px minmax(0,1fr);gap:8px}
+  .tl-time{font-size:12px;padding-top:11px}
+  .ev--wide{padding:12px 13px}
+  .ev--wide .ev-title{font-size:15px}
+  .ev--wide .ev-note,.ev--wide .ev-time{font-size:12.5px}
+  .big{font-size:44px}
+  .sp-card{padding:14px;border-radius:18px}
+  .tchip{font-size:12.5px}
+  .tabbar{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:end;position:fixed;left:0;right:0;bottom:0;z-index:40;
+    background:var(--canvas);border-top:1px solid var(--line);
+    padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .tabbar a,.tabbar > button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;color:var(--muted);text-decoration:none;padding:4px 0}
+  .tabbar .ic{width:22px;height:22px}
+  .tabbar .on{color:var(--pink-ink)}
+  .tabbar .tab-add{justify-self:center;width:52px;height:52px;border-radius:50%;background:var(--invert-bg);color:var(--invert-fg);display:grid;place-items:center;margin-top:-24px;box-shadow:0 0 0 5px var(--canvas);padding:0}
+  .tabbar .tab-add .ic{width:24px;height:24px;stroke-width:2.2}
+}
 </style>
 </head>
 <body>
@@ -565,6 +646,8 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
     <div id="view"></div>
   </main>
 </div>
+
+<nav class="tabbar" id="tabbar" aria-label="Разделы"></nav>
 
 <div class="drawer" id="drawer" hidden>
   <div class="drawer-bg" data-act="close"></div>
@@ -622,6 +705,8 @@ const IC = {
   arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
   fork:'<path d="M7 3v7M5 3v4.5a2 2 0 0 0 4 0V3M7 10v11M17 21V3c-2 1.5-3 4-3 7v4h3"/>',
   plus:'<path d="M12 5v14M5 12h14"/>',
+  more:'<path d="M5 12h.01M12 12h.01M19 12h.01" stroke-width="3.2"/>',
+  rain:'<path d="M7 15.5a4 4 0 0 1 .6-8 5.5 5.5 0 0 1 10.4 1.7A3.3 3.3 0 0 1 17.5 15.5z"/><path d="M8.5 18.5l-1 2M12.5 18.5l-1 2M16.5 18.5l-1 2"/>',
   x:'<path d="M6 6l12 12M18 6 6 18"/>',
   star:'<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
   bag:'<path d="M5 8h14l-1 12.5H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
@@ -1517,6 +1602,14 @@ const NAV = [
   {g:'Жизнь'}, {k:'week', t:'Расписание', i:'week'}, {k:'today', t:'Сегодня', i:'sun'}, {k:'spheres', t:'Сферы', i:'spheres'}, {k:'tracker', t:'Привычки', i:'track'}, {k:'month', t:'Месяц 1', i:'month'},
   {g:'Опоры'}, {k:'budget', t:'Бюджет', i:'wallet'}, {k:'ideas', t:'Идеи', i:'bulb'}, {k:'system', t:'Система', i:'compass'}
 ];
+document.getElementById('tabbar').innerHTML = `<a href="#week" data-tab="week">${icon('week')}<span>Неделя</span></a><a href="#today" data-tab="today">${icon('sun')}<span>Сегодня</span></a><button class="tab-add" data-act="add" aria-label="Добавить дело">${icon('plus')}</button><a href="#spheres" data-tab="spheres">${icon('spheres')}<span>Сферы</span></a><button data-act="more" data-tab="more" aria-label="Ещё разделы">${icon('more')}<span>Ещё</span></button>`;
+function openMore(){
+  const links = [['tracker','Привычки','track'],['month','Месяц 1','month'],['budget','Бюджет','wallet'],['ideas','Идеи','bulb'],['system','Система','compass']];
+  openDrawer(`<p class="eyebrow">outly</p><h2 id="drawer-title">Ещё</h2>
+    <div class="more">${links.map(l => `<a href="#${l[0]}" data-act="close" class="more-link${S.view === l[0] ? ' on' : ''}">${icon(l[2])}<span>${l[1]}</span></a>`).join('')}
+      <button class="more-link" data-act="bad">${icon('rain')}<span>Плохой день</span></button>
+      <button class="more-link" data-act="signout">${icon('door')}<span>Выйти</span></button></div>`);
+}
 document.getElementById('nav').innerHTML = NAV.map(n => n.g ? `<div class="nav-group">${n.g}</div>` : `<a href="#${n.k}" data-nav="${n.k}" title="${n.t}">${icon(n.i)}<span>${n.t}</span></a>`).join('');
 
 function typing(){ const a = document.activeElement; return !!(a && a.closest && a.closest('#view') && a.matches('input,select,textarea')); }
@@ -1535,6 +1628,7 @@ function render(opts){
   const v = S.view, out = VIEWS[v]();
   document.querySelectorAll('[data-nav]').forEach(a => { const on = a.dataset.nav === v; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
   document.querySelectorAll('[data-seg]').forEach(a => a.classList.toggle('on', a.dataset.seg === v));
+  document.querySelectorAll('[data-tab]').forEach(t => t.classList.toggle('on', t.dataset.tab === v || (t.dataset.tab === 'more' && !['week','today','spheres'].includes(v))));
   document.getElementById('ctrl').hidden = !['week','today','month','tracker'].includes(v);
   document.getElementById('weekpill').hidden = !['week','tracker'].includes(v);
   document.getElementById('seg').hidden = v === 'tracker';
@@ -1551,7 +1645,7 @@ function render(opts){
   rule.dataset.wk = tw; rule.dataset.d = td;
   rule.className = 'rule' + (outOn ? ' on' : '');
   rule.setAttribute('aria-pressed', outOn);
-  rule.innerHTML = `<span class="rule-ic">${icon('door')}</span><span class="rule-text"><b>Главное правило:</b> каждый день хотя бы одно событие вне дома, не связанное с работой</span><span class="rule-state">${pre ? 'С 23 ноября' : outOn ? icon('check') + 'Сегодня есть' : 'Отметить сегодня'}</span>`;
+  rule.innerHTML = `<span class="rule-ic">${icon('door')}</span><span class="rule-text"><b>Главное правило:</b> <span class="rt-long">каждый день хотя бы одно событие вне дома, не связанное с работой</span><span class="rt-short">каждый день выйти из дома не по работе</span></span><span class="rule-state">${pre ? 'С 23 ноября' : outOn ? icon('check') + 'Сегодня есть' : 'Отметить сегодня'}</span>`;
 
   if (focus){ try { const el = document.querySelector(focus); if (el) el.focus({preventScroll:true}); } catch(e){} }
 }
@@ -1579,6 +1673,7 @@ document.addEventListener('click', e => {
   else if (a === 'ef-reset') resetEvent();
   else if (a === 'collapse') setCollapsed(!document.querySelector('.shell').classList.contains('is-collapsed'));
   else if (a === 'bad') openBad();
+  else if (a === 'more') openMore();
   else if (a === 'signout'){ if (window.firebase && firebase.apps.length) firebase.auth().signOut().then(() => location.reload()); }
   else if (a === 'budget-edit'){ S.budgetEdit = true; render(); }
   else if (a === 'budget-cancel'){ S.budgetEdit = false; render(); }
