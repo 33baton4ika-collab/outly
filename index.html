@@ -1,0 +1,1689 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>outly</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="outly">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F4ECDA" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E0D0B" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest?v=1">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=1">
+<link rel="icon" href="icon-192.png?v=1">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: black sidebar + cream canvas (по референсу). Неделя — календарь, где работа сжата в тонкие штрихованные полосы вокруг обеда */
+:root{
+  --ground:#F4ECDA; --canvas:#FBF6EA; --raise:#FFFDF7; --card:#EEE6D4;
+  --ink:#161513; --muted:#776F5D; --line:#E2D8C3; --line-strong:#C9BDA3; --frame:#3B3934;
+  --side:#131211; --side-border:#131211; --side-fg:#F5F0E5; --side-muted:#8E897D;
+  --pink:#F5BBDC; --pink-ink:#BF3A86; --yellow:#F6DA6E; --blue:#BCCDF2; --sage:#CFE0BF; --lilac:#DCCFF3;
+  --on-accent:#161513; --veil:rgba(255,255,255,.55);
+  --invert-bg:#161513; --invert-fg:#FBF6EA; --good:#2F7A43; --overlay:rgba(15,14,12,.45);
+  --font:"Manrope","Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0E0D0B; --canvas:#171512; --raise:#201D19; --card:#29251F;
+    --ink:#F3EDE2; --muted:#A79F8E; --line:#36312A; --line-strong:#4D463C; --frame:#3F3B35;
+    --side:#0B0A09; --side-border:#2A2621; --side-fg:#F3EDE2; --side-muted:#827C70;
+    --pink:#EBA6CD; --pink-ink:#F294C8; --yellow:#E6CB5E; --blue:#A3B9E8; --sage:#B5CBA3; --lilac:#C3B3E6;
+    --on-accent:#161513; --veil:rgba(255,255,255,.5);
+    --invert-bg:#F3EDE2; --invert-fg:#161513; --good:#7DC58D; --overlay:rgba(0,0,0,.6);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0E0D0B; --canvas:#171512; --raise:#201D19; --card:#29251F;
+  --ink:#F3EDE2; --muted:#A79F8E; --line:#36312A; --line-strong:#4D463C; --frame:#3F3B35;
+  --side:#0B0A09; --side-border:#2A2621; --side-fg:#F3EDE2; --side-muted:#827C70;
+  --pink:#EBA6CD; --pink-ink:#F294C8; --yellow:#E6CB5E; --blue:#A3B9E8; --sage:#B5CBA3; --lilac:#C3B3E6;
+  --on-accent:#161513; --veil:rgba(255,255,255,.5);
+  --invert-bg:#F3EDE2; --invert-fg:#161513; --good:#7DC58D; --overlay:rgba(0,0,0,.6);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;
+  padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--pink-ink);outline-offset:2px}
+.ic{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
+@media (prefers-reduced-motion: no-preference){
+  .ev,.dot,.tchip,.check .box,.sleep,.out-dot,.hobby,.mini,.meal{transition:background-color .18s,border-color .18s,opacity .18s,box-shadow .18s}
+}
+
+/* ---------- shell ---------- */
+.shell{max-width:1480px;margin:0 auto;display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;
+  background:var(--canvas);border:1.5px solid var(--frame);border-radius:34px;padding:18px 26px 28px 18px}
+.side{background:var(--side);color:var(--side-fg);border:1px solid var(--side-border);border-radius:26px;
+  padding:30px 14px 16px;display:flex;flex-direction:column;gap:20px;position:sticky;top:20px;align-self:start;
+  min-height:min(780px,calc(100dvh - 40px))}
+.brand{display:flex;align-items:center;padding:0 12px;min-height:40px}
+.logo{display:inline-flex;align-items:flex-end;font-size:33px;font-weight:500;letter-spacing:-.04em;line-height:1;text-decoration:none;color:var(--side-fg)}
+.logo i{width:8px;height:8px;border-radius:50%;background:var(--pink);margin:0 0 5px 3px;flex:none}
+.collapse-btn{position:absolute;top:36px;right:-15px;width:30px;height:30px;border-radius:50%;background:var(--pink);color:var(--on-accent);
+  display:grid;place-items:center;box-shadow:0 0 0 4px var(--canvas);z-index:2}
+.collapse-btn .ic{width:15px;height:15px;stroke-width:2.4}
+.shell.is-collapsed .collapse-btn .ic{transform:rotate(180deg)}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-group{font-size:12px;color:var(--side-muted);padding:14px 12px 8px}
+.nav a{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;text-decoration:none;font-size:14px;color:var(--side-fg);position:relative}
+.nav a:hover{background:rgba(255,255,255,.07)}
+.nav a.on{color:var(--pink)}
+.nav a.on::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--pink)}
+.side-note{margin-top:auto;background:rgba(255,255,255,.07);border-radius:16px;padding:14px;font-size:12.5px;line-height:1.45}
+.side-note b{display:block;font-size:24px;font-weight:600;letter-spacing:-.03em;color:var(--pink);margin-bottom:4px;font-variant-numeric:tabular-nums}
+.side-bad{display:flex;align-items:center;gap:12px;padding:9px 12px;font-size:14px;border-radius:10px;color:var(--side-fg)}
+.side-bad:hover{background:rgba(255,255,255,.07)}
+
+.main{min-width:0;display:flex;flex-direction:column;gap:18px;padding-top:4px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.rule{display:flex;align-items:center;gap:12px;flex:1 1 440px;min-width:0;max-width:680px;border:1.5px solid var(--frame);
+  border-radius:999px;padding:5px 6px 5px 5px}
+.rule-ic{width:36px;height:36px;border-radius:50%;background:var(--pink);display:grid;place-items:center;color:var(--on-accent);flex:none}
+.rule-text{font-size:13px;min-width:0;flex:1;line-height:1.3}
+.rule-text b{font-weight:600}
+.rule-state{flex:none;font-size:12px;font-weight:500;padding:7px 12px;border-radius:999px;border:1.5px dashed var(--line-strong);color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.rule-state .ic{width:14px;height:14px;stroke-width:2.4}
+.rule.on .rule-state{background:var(--invert-bg);color:var(--invert-fg);border:1.5px solid var(--invert-bg)}
+.sync{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);padding:8px 12px;border-radius:999px;background:var(--raise)}
+.sync i{width:8px;height:8px;border-radius:50%;background:var(--line-strong)}
+.sync.ok i{background:var(--good)} .sync.err i{background:var(--pink-ink)}
+
+.title-row{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04em;line-height:1.05;text-wrap:balance}
+.sub{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.sub span{font-size:12px;padding:5px 11px;border-radius:999px;background:var(--raise);color:var(--muted)}
+.sub b{color:var(--ink);font-weight:600}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn-black{background:var(--invert-bg);color:var(--invert-fg);border-radius:999px;padding:11px 18px;font-weight:500;font-size:14px;white-space:nowrap;display:inline-flex;align-items:center;gap:8px}
+.btn-black .ic{width:16px;height:16px;stroke-width:2.2}
+.btn-ghost{border:1.5px solid var(--line-strong);border-radius:999px;padding:10px 17px;font-size:14px;font-weight:500;background:var(--raise);white-space:nowrap}
+.btn-ghost:hover{border-color:var(--ink)}
+.btn-round{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;background:var(--raise);flex:none}
+.btn-round:hover{border-color:var(--line-strong)}
+.btn-link{font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.btn-link.danger{color:var(--pink-ink)}
+.ctrl{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.weekpill{display:inline-flex;align-items:center;background:var(--invert-bg);color:var(--invert-fg);border-radius:999px;padding:4px;gap:2px;font-size:13px;font-weight:500}
+.weekpill button{width:30px;height:30px;border-radius:50%;display:grid;place-items:center}
+.weekpill button:hover:not(:disabled){background:rgba(127,127,127,.28)}
+.weekpill button:disabled{opacity:.3;cursor:default}
+.rule:disabled{cursor:default}
+.weekpill span{padding:0 6px;min-width:128px;text-align:center;font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;gap:4px;background:var(--raise);padding:4px;border-radius:999px;margin-left:auto}
+.seg a{padding:6px 14px;border-radius:999px;text-decoration:none;font-size:12.5px;color:var(--muted)}
+.seg a.on{background:var(--invert-bg);color:var(--invert-fg)}
+
+/* ---------- week grid ---------- */
+.wk{display:grid;grid-template-columns:62px repeat(7,minmax(0,1fr));gap:10px}
+.wk-corner{display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em}
+.wk-corner b{font-size:15px;color:var(--ink);font-weight:500;letter-spacing:0;font-variant-numeric:tabular-nums}
+.wk-head{background:var(--raise);border-radius:14px;padding:8px 8px 8px 12px;display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+.wh-text{display:flex;flex-direction:column;min-width:0;gap:1px}
+.wh-top{display:flex;align-items:baseline;gap:6px}
+.wh-date{font-size:18px;font-weight:600;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.wh-day{font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500}
+.wh-theme{font-size:11px;color:var(--muted);line-height:1.25;overflow-wrap:anywhere}
+.wk-head.is-wkend .wh-day{color:var(--pink-ink)}
+.wk-head.is-today{background:var(--invert-bg);color:var(--invert-fg)}
+.wk-head.is-today .wh-day,.wk-head.is-today .wh-theme{color:inherit;opacity:.7}
+.out-dot{width:22px;height:22px;border-radius:50%;border:1.5px solid currentColor;opacity:.3;display:grid;place-items:center;flex:none}
+.out-dot .ic{width:11px;height:11px;stroke-width:2.4}
+.out-dot:hover{opacity:.7}
+.out-dot.on{opacity:1;background:var(--pink);border-color:var(--pink);color:var(--on-accent)}
+
+.wk-axis{display:flex;flex-direction:column;align-items:flex-end;gap:3px;padding:6px 10px 0 0;border-right:1.5px solid var(--line);margin-right:-10px;min-width:0}
+.ax-time{font-size:12px;font-variant-numeric:tabular-nums;font-weight:500}
+.ax-label{font-size:10.5px;color:var(--muted);text-align:right;line-height:1.2}
+.wk-axis.is-now .ax-time{background:var(--pink);color:var(--on-accent);padding:2px 8px;border-radius:999px;font-weight:600}
+.wk-cell{display:flex;flex-direction:column;gap:8px;min-width:0}
+
+.ev{background:var(--card);border-radius:14px;padding:10px 10px 11px;display:flex;flex-direction:column;gap:3px;min-width:0;cursor:pointer}
+.ev:hover{box-shadow:inset 0 0 0 1.5px var(--line-strong)}
+.ev-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.chip-ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:var(--on-accent);flex:none}
+.chip-ic .ic{width:14px;height:14px}
+.hue-yellow{background:var(--yellow)} .hue-blue{background:var(--blue)} .hue-pink{background:var(--pink)}
+.hue-sage{background:var(--sage)} .hue-lilac{background:var(--lilac)} .hue-card{background:var(--card);color:var(--ink)}
+.ev.fill-yellow{background:var(--yellow)} .ev.fill-blue{background:var(--blue)} .ev.fill-pink{background:var(--pink)}
+.ev.fill-sage{background:var(--sage)} .ev.fill-lilac{background:var(--lilac)}
+.ev.is-fill{color:var(--on-accent)}
+.ev.is-fill:hover{box-shadow:inset 0 0 0 1.5px rgba(22,21,19,.35)}
+.ev.is-fill .chip-ic{background:var(--veil)}
+.ev.is-fill .ev-note,.ev.is-fill .ev-time{color:var(--on-accent);opacity:.72}
+.ev-check{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;opacity:.38;display:grid;place-items:center;flex:none}
+.ev-check .ic{width:13px;height:13px;stroke-width:2.6;opacity:0}
+.ev-check:hover{opacity:.8}
+.ev.is-done .ev-check{opacity:1;background:var(--ink);border-color:var(--ink);color:var(--canvas)}
+.ev.is-done .ev-check .ic{opacity:1}
+.ev.is-fill.is-done .ev-check{background:var(--on-accent);border-color:var(--on-accent);color:#FFFDF7}
+.ev-tag{align-self:flex-start;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:999px;background:var(--pink);color:var(--on-accent);margin-bottom:3px}
+.ev.is-fill .ev-tag{background:var(--veil)}
+.ev-title{margin:0;font-size:13.5px;font-weight:600;line-height:1.25;letter-spacing:-.01em;overflow-wrap:anywhere}
+.ev-title button{font-weight:inherit;letter-spacing:inherit;line-height:inherit;text-align:left}
+.ev-note{margin:0;font-size:11.5px;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
+.ev-time{margin:2px 0 0;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ev-now{margin-top:8px;text-align:center;font-size:12px;font-weight:500;padding:7px;border-radius:999px;background:var(--pink);color:var(--on-accent)}
+.ev.fill-pink .ev-now{background:var(--on-accent);color:#FFFDF7}
+
+.meal{display:flex;align-items:center;gap:7px;width:100%;padding:6px 10px;border-radius:999px;border:1.5px dashed var(--line-strong);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:left;min-width:0}
+.meal .ic{width:14px;height:14px}
+.meal b{color:var(--ink);font-weight:600;margin-right:4px}
+.meal span{min-width:0;overflow-wrap:anywhere}
+.meal:hover{border-color:var(--ink)}
+.work-strip,.free-strip{min-height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;padding:4px 6px;text-align:center;font-variant-numeric:tabular-nums}
+.work-strip{color:var(--muted);border:1px solid var(--line);background:repeating-linear-gradient(135deg,transparent 0 6px,var(--line) 6px 7px)}
+.work-strip .ic,.free-strip .ic{width:14px;height:14px}
+.free-strip{color:var(--pink-ink);border:1.5px dashed var(--pink)}
+.sleep{display:flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border-radius:999px;border:1.5px solid var(--line);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;width:100%;padding:4px 8px}
+.sleep .ic{width:14px;height:14px}
+.sleep:hover{border-color:var(--line-strong)}
+.sleep.on{background:var(--sage);border-color:var(--sage);color:var(--on-accent)}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12px;color:var(--muted);padding-top:4px;align-items:center}
+.legend > span{display:inline-flex;align-items:center;gap:7px}
+.legend > span em{font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600}
+.legend .chip-ic{width:22px;height:22px}
+.legend .chip-ic .ic{width:12px;height:12px}
+.legend .legend-t{color:var(--ink);font-weight:600}
+.daypills{display:none}
+
+/* ---------- generic panels ---------- */
+.panel{background:var(--raise);border-radius:22px;padding:22px;min-width:0}
+.panel h2{margin:0 0 4px;font-size:19px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
+.lead{margin:0 0 14px;color:var(--muted);font-size:13px;max-width:62ch}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:500;margin:0 0 6px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.stack-v{display:flex;flex-direction:column;gap:16px;min-width:0}
+.check{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-top:1px solid var(--line);width:100%;font-size:13.5px;line-height:1.35}
+.check:first-child{border-top:0}
+.box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line-strong);flex:none;display:grid;place-items:center}
+.box .ic{width:12px;height:12px;stroke-width:2.8;opacity:0}
+.check.on .box{background:var(--ink);border-color:var(--ink);color:var(--canvas)}
+.check.on .box .ic{opacity:1}
+.check.on .check-t{color:var(--muted)}
+.check:hover .box{border-color:var(--ink)}
+.note{background:var(--card);border-radius:16px;padding:14px 16px;font-size:13px;line-height:1.5}
+.note b{font-weight:600}
+.kv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:0 16px;font-size:13.5px}
+.kv div{padding:8px 0;border-top:1px solid var(--line)}
+.kv div:nth-child(-n+2){border-top:0}
+.kv div:nth-child(odd){color:var(--muted)}
+.progress{display:flex;gap:4px;margin-top:10px}
+.progress i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.progress i.on{background:var(--ink)}
+
+/* ---------- today ---------- */
+.today{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}
+.tl{display:flex;flex-direction:column;gap:10px}
+.tl-row{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;align-items:start}
+.tl-time{font-size:13px;font-variant-numeric:tabular-nums;padding-top:12px;color:var(--muted);text-align:right}
+.tl-row .meal{padding:10px 14px;font-size:13px}
+.ev--wide{padding:14px 16px 15px}
+.ev--wide .ev-title{font-size:16px}
+.ev--wide .ev-note,.ev--wide .ev-time{font-size:13px}
+.tchips{display:flex;flex-wrap:wrap;gap:8px}
+.tchip{display:inline-flex;align-items:center;gap:8px;padding:7px 12px 7px 7px;border-radius:999px;border:1.5px solid var(--line);font-size:13px}
+.tchip .box{border-radius:50%}
+.tchip:hover{border-color:var(--line-strong)}
+.tchip.on{background:var(--yellow);border-color:var(--yellow);color:var(--on-accent)}
+.tchip.on .box{background:var(--on-accent);border-color:var(--on-accent);color:#FFFDF7}
+.tchip.on .box .ic{opacity:1}
+.swap{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}
+.swap:first-of-type{border-top:0}
+.swap > span{color:var(--muted)}
+.swap .ic{width:16px;height:16px;color:var(--pink-ink)}
+.swap b{font-weight:600}
+.neg{display:flex;flex-direction:column}
+.neg-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line)}
+.neg-item:first-child{border-top:0;padding-top:0}
+.neg-t{flex:1;min-width:0}
+.neg-t b{display:block;font-size:13.5px;font-weight:600;overflow-wrap:anywhere}
+.neg-t small{font-size:12px;color:var(--muted)}
+.sugs{display:flex;flex-wrap:wrap;gap:6px}
+.sug{font-size:12.5px;padding:5px 11px;border-radius:999px;background:var(--card);color:var(--ink);display:inline-flex;align-items:center;gap:5px}
+.sug .ic{width:13px;height:13px;stroke-width:2.2}
+.sug:hover{background:var(--line)}
+
+/* ---------- tracker ---------- */
+.score{display:flex;flex-wrap:wrap;gap:20px 40px;align-items:flex-end;justify-content:space-between}
+.big{font-size:clamp(48px,6vw,76px);font-weight:500;letter-spacing:-.05em;line-height:.95;font-variant-numeric:tabular-nums}
+.big small{font-size:.4em;color:var(--muted);letter-spacing:-.02em}
+.score-msg{max-width:42ch;font-size:14px}
+.score-msg b{display:block;font-size:17px;font-weight:600;margin-bottom:4px;letter-spacing:-.01em}
+.trk{display:grid;grid-template-columns:minmax(0,1fr) auto 74px;align-items:center;gap:16px;padding:12px 0;border-top:1px solid var(--line)}
+.trk:first-child{border-top:0}
+.trk-label b{display:block;font-size:14px;font-weight:500}
+.trk-label span{font-size:12px;color:var(--muted)}
+.dots{display:flex;gap:6px}
+.dot{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--line-strong);font-size:10.5px;color:var(--muted);display:grid;place-items:center}
+.dot:hover{border-color:var(--ink)}
+.dot.is-today{border-color:var(--ink);color:var(--ink);font-weight:600}
+.dot.on{background:var(--yellow);border-color:var(--yellow);color:var(--on-accent);font-weight:600}
+.trk-count{justify-self:end;font-variant-numeric:tabular-nums;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--card)}
+.trk.met .trk-count{background:var(--invert-bg);color:var(--invert-fg)}
+
+/* ---------- spheres ---------- */
+.bal-row{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr) 28px;gap:12px;align-items:center;padding:5px 0}
+.bal-name{display:flex;align-items:center;gap:8px;font-size:13px;min-width:0}
+.bal-name .chip-ic{width:22px;height:22px}
+.bal-name .chip-ic .ic{width:12px;height:12px}
+.bal-track{height:12px;border-radius:6px;background:var(--card);overflow:hidden}
+.bal-track i{display:block;height:100%;border-radius:6px}
+.bal-n{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;font-weight:600}
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(380px,100%),1fr));gap:14px;align-items:start}
+.sp-card{background:var(--raise);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sp-top{display:flex;align-items:center;gap:10px}
+.sp-top .chip-ic{width:34px;height:34px}
+.sp-top .chip-ic .ic{width:17px;height:17px}
+.sp-name{flex:1;min-width:0;font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:transparent;border:1.5px solid transparent;border-radius:8px;padding:4px 6px;margin-left:-4px}
+.sp-name:hover{border-color:var(--line)}
+.sp-name:focus{outline:none;border-color:var(--ink);background:var(--canvas)}
+.st{font-size:11.5px;font-weight:600;padding:4px 9px;border-radius:999px;white-space:nowrap;color:var(--on-accent);flex:none}
+.st-ok{background:var(--sage)} .st-soon{background:var(--yellow)} .st-late{background:var(--pink)}
+.st-never{background:transparent;border:1.5px dashed var(--line-strong);color:var(--muted)}
+.sp-meta{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.sp-meta b{color:var(--ink)}
+.sp-meta select{font:inherit;font-size:12px;color:var(--ink);background:var(--canvas);border:1.5px solid var(--line);border-radius:999px;padding:4px 8px;margin-left:6px}
+.strip14{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px}
+.strip14 i{height:14px;border-radius:4px;background:var(--card)}
+.strip14 i.today{box-shadow:inset 0 0 0 1.5px var(--ink)}
+.strip-cap{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:4px}
+.sp-item{display:flex;flex-direction:column;gap:4px;padding:10px 0;border-top:1px solid var(--line)}
+.sp-items > .sp-item:first-child{border-top:0;padding-top:0}
+.sp-it-head{display:flex;align-items:center;gap:8px;min-width:0}
+.dotst{width:9px;height:9px;border-radius:50%;flex:none;background:var(--line-strong)}
+.dotst.st-ok{background:var(--good)} .dotst.st-soon{background:var(--yellow)} .dotst.st-late{background:var(--pink-ink)}
+.dotst.st-never{background:transparent;border:1.5px solid var(--line-strong);box-sizing:border-box}
+.it-name{flex:1;min-width:0;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:transparent;border:1.5px solid transparent;border-radius:8px;padding:3px 6px;margin-left:-4px}
+.it-name:hover{border-color:var(--line)}
+.it-name:focus{outline:none;border-color:var(--ink);background:var(--canvas)}
+.it-ago{font-size:12px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.it-note{margin:0 0 2px 20px;font-size:12px;color:var(--muted);line-height:1.4}
+.sp-it-ctrl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-left:20px}
+.sel{position:relative;display:inline-flex;align-items:center}
+.sel select{appearance:none;-webkit-appearance:none;font:inherit;font-size:11.5px;line-height:1.3;color:var(--ink);background:var(--canvas);border:1.5px solid var(--line);border-radius:999px;padding:5px 28px 5px 11px;cursor:pointer;margin:0}
+.sel::after{content:"";position:absolute;right:12px;top:50%;width:5px;height:5px;margin-top:-4px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:rotate(45deg);pointer-events:none}
+.sel select:hover{border-color:var(--line-strong)}
+.sel select:focus{outline:none;border-color:var(--ink)}
+.mini{font-size:11.5px;font-weight:500;padding:5px 9px;border-radius:999px;border:1.5px solid var(--line);white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.mini .ic{width:12px;height:12px;stroke-width:2.6}
+.mini:hover{border-color:var(--ink)}
+.mini.on{background:var(--invert-bg);color:var(--invert-fg);border-color:var(--invert-bg)}
+.icon-btn{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:var(--muted);flex:none}
+.icon-btn:hover{background:var(--card);color:var(--ink)}
+.icon-btn .ic{width:14px;height:14px}
+.add-row{display:flex;gap:6px}
+.add-row input{flex:1;min-width:0;font:inherit;font-size:13px;color:var(--ink);background:var(--canvas);border:1.5px solid var(--line);border-radius:999px;padding:7px 12px}
+.add-row input:focus{outline:none;border-color:var(--ink)}
+.add-row button{width:34px;height:34px;border-radius:50%;background:var(--invert-bg);color:var(--invert-fg);display:grid;place-items:center;flex:none}
+.add-row button .ic{width:16px;height:16px;stroke-width:2.2}
+.sp-del{align-self:flex-start;font-size:12px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+.sp-del.confirm{color:var(--pink-ink);font-weight:600}
+.sp-new{border:1.5px dashed var(--line-strong);background:transparent}
+.sp-new h3{margin:0;font-size:15px;font-weight:600}
+
+/* ---------- month ---------- */
+.mw{background:var(--raise);border-radius:22px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.mw-head{padding:16px 18px 14px;background:var(--card);display:flex;flex-direction:column;gap:2px}
+.mw.is-cur .mw-head{background:var(--invert-bg);color:var(--invert-fg)}
+.mw.is-cur .mw-head .eyebrow,.mw.is-cur .mw-head .mw-date{color:inherit;opacity:.72}
+.mw-head h3{margin:0;font-size:18px;font-weight:600;letter-spacing:-.02em}
+.mw-date{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.mw-body{padding:10px 18px 16px;display:flex;flex-direction:column;flex:1}
+.mw-main{font-size:12.5px;color:var(--muted);padding:6px 0 4px}
+.mw-foot{margin-top:auto;padding-top:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.vision{columns:2;column-gap:28px;margin:0;padding:0;list-style:none}
+.vision li{break-inside:avoid;padding:8px 0 8px 22px;position:relative;font-size:13.5px;border-top:1px solid var(--line)}
+.vision li::before{content:"";position:absolute;left:2px;top:15px;width:8px;height:8px;border-radius:50%;background:var(--pink)}
+
+/* ---------- budget ---------- */
+.bud-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:18px}
+.bud-split{display:flex;gap:28px;flex-wrap:wrap}
+.bud-split div{font-size:12px;color:var(--muted)}
+.bud-split b{display:block;font-size:24px;color:var(--ink);font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.bar{display:flex;height:46px;border-radius:14px;overflow:hidden;gap:3px;margin:20px 0 12px}
+.bar span{display:block;min-width:6px}
+.s-ink{background:var(--ink)}
+.s-reserve{background:repeating-linear-gradient(135deg,var(--card) 0 6px,var(--line-strong) 6px 7px);color:var(--ink)}
+.bar-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--muted)}
+.bar-legend span{display:inline-flex;align-items:center;gap:6px}
+.bar-legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.bud-card{background:var(--card);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.bud-card .chip-ic{width:30px;height:30px}
+.bud-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.bud-pct{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bud-amt{font-size:28px;font-weight:500;letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin-top:6px}
+.bud-week{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bud-card p{margin:4px 0 0;font-size:12.5px;line-height:1.45}
+
+/* ---------- ideas / system ---------- */
+.mb-row{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:start}
+.mb-row:first-child{border-top:0}
+.mb-n{width:28px;height:28px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.mb-row.is-cur .mb-n{background:var(--pink);color:var(--on-accent)}
+.mb-row b{font-weight:600;font-size:14px}
+.mb-row > div > span{display:block;font-size:12.5px;color:var(--muted)}
+.mb-row em{font-style:normal;font-size:11px;font-weight:600;color:var(--pink-ink);margin-left:6px}
+.links{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.links a{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line);text-decoration:none;font-size:13px}
+.links a span{color:var(--muted);text-align:right}
+.links a:hover b{text-decoration:underline}
+.topics{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.topics span{font-size:12px;padding:5px 10px;border-radius:999px;background:var(--card);color:var(--muted)}
+.topics span.on{background:var(--invert-bg);color:var(--invert-fg)}
+.hobbies{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));gap:8px}
+.hobby{border:1.5px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;font-size:13.5px}
+.hobby span{font-size:12px;color:var(--muted)}
+.hobby:hover{border-color:var(--line-strong)}
+.hobby.on{background:var(--pink);border-color:var(--pink);color:var(--on-accent)}
+.hobby.on span{color:var(--on-accent);opacity:.75}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}
+.two .note{font-size:12.5px}
+.two .note b{display:block;margin-bottom:2px}
+.dir-card{background:var(--raise);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dir-card .chip-ic{width:34px;height:34px;margin-bottom:6px}
+.dir-card .chip-ic .ic{width:17px;height:17px}
+.dir-card b{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.dir-card p{margin:2px 0 0;font-size:12.5px;line-height:1.45}
+.rules{display:flex;flex-direction:column}
+.rules > div{display:grid;grid-template-columns:30px minmax(0,1fr);gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.rules > div:first-child{border-top:0}
+.rules i{font-style:normal;width:30px;height:30px;border-radius:50%;background:var(--yellow);color:var(--on-accent);display:grid;place-items:center;font-size:12px;font-weight:600}
+.rules b{display:block;font-size:14px;font-weight:600}
+.rules span{font-size:12.5px;color:var(--muted);line-height:1.45}
+
+/* ---------- drawer & form ---------- */
+.drawer{position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end}
+.drawer-bg{position:absolute;inset:0;background:var(--overlay)}
+.drawer-panel{position:relative;background:var(--canvas);width:min(460px,100%);height:100%;overflow:auto;border-radius:28px 0 0 28px;
+  padding:calc(26px + env(safe-area-inset-top,0px)) max(24px,calc(16px + env(safe-area-inset-right,0px))) calc(26px + env(safe-area-inset-bottom,0px)) 26px}
+.drawer-body{display:flex;flex-direction:column;gap:14px}
+.drawer-body h2{margin:0;font-size:26px;font-weight:500;letter-spacing:-.035em;line-height:1.1;padding-right:48px}
+.drawer-x{position:absolute;top:calc(18px + env(safe-area-inset-top,0px));right:max(18px,calc(12px + env(safe-area-inset-right,0px)))}
+.drawer-body p{margin:0}
+.ef{display:flex;flex-direction:column;gap:16px}
+.fl{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fl-label{font-size:12px;color:var(--muted);font-weight:500}
+.fl input{font:inherit;color:var(--ink);background:var(--raise);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+.fl input:focus{outline:none;border-color:var(--ink)}
+.fl-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts{display:flex;flex-wrap:wrap;gap:6px}
+.opt{position:relative;display:inline-flex}
+.opt input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+.opt > span{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;border:1.5px solid var(--line);font-size:12.5px;cursor:pointer;font-variant-numeric:tabular-nums}
+.opt > span .chip-ic{width:20px;height:20px;margin-left:-6px}
+.opt > span .chip-ic .ic{width:11px;height:11px}
+.opt:hover > span{border-color:var(--line-strong)}
+.opt input:checked + span{background:var(--invert-bg);color:var(--invert-fg);border-color:var(--invert-bg)}
+.opt input:focus-visible + span{outline:2px solid var(--pink-ink);outline-offset:2px}
+.ef-suggest{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+.ef-actions{display:flex;gap:10px;flex-wrap:wrap}
+.ef-more{display:flex;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+.ef-err{color:var(--pink-ink);font-size:13px}
+
+/* ---------- login & budget form ---------- */
+.login{position:fixed;inset:0;z-index:60;background:var(--ground);display:grid;place-items:center;overflow:auto;
+  padding:calc(24px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.login-card{width:min(380px,100%);background:var(--canvas);border:1.5px solid var(--frame);border-radius:28px;padding:28px;display:flex;flex-direction:column;gap:14px}
+.logo-big{display:inline-flex;align-items:flex-end;font-size:40px;font-weight:600;letter-spacing:-.04em;line-height:1}
+.logo-big i{width:10px;height:10px;border-radius:50%;background:var(--pink);margin:0 0 6px 4px}
+.bud-form{display:flex;flex-direction:column;gap:14px}
+.bud-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:12px}
+
+/* ---------- responsive ---------- */
+@media (min-width:981px){
+  .shell.is-collapsed{grid-template-columns:76px minmax(0,1fr)}
+  .shell.is-collapsed .side{padding:24px 10px 14px;align-items:center}
+  .shell.is-collapsed .brand{padding:0;justify-content:center}
+  .shell.is-collapsed .logo-rest,.shell.is-collapsed .nav-group,.shell.is-collapsed .side-note,
+  .shell.is-collapsed .nav a span,.shell.is-collapsed .side-bad span{display:none}
+  .shell.is-collapsed .nav a{justify-content:center;padding:11px}
+  .shell.is-collapsed .nav a.on::before{left:-4px}
+  .shell.is-collapsed .side-bad{padding:11px}
+}
+@media (max-width:1240px) and (min-width:981px){
+  .shell{grid-template-columns:76px minmax(0,1fr)}
+  .side{padding:24px 10px 14px;align-items:center}
+  .brand{padding:0;justify-content:center}
+  .logo-rest,.nav-group,.side-note,.nav a span,.side-bad span,.collapse-btn{display:none}
+  .nav a{justify-content:center;padding:11px}
+  .nav a.on::before{left:-4px}
+  .side-bad{padding:11px}
+}
+@media (max-width:1100px){
+  .grid3,.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .today{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:980px){
+  body{padding-block:12px}
+  .shell{grid-template-columns:minmax(0,1fr);padding:12px 12px 22px;border-radius:26px;gap:18px}
+  .side{position:static;min-height:0;padding:16px 12px 12px;gap:14px}
+  .brand{padding:0 4px;min-height:0}
+  .logo{font-size:28px}
+  .collapse-btn{display:none}
+  .nav{flex-direction:row;overflow-x:auto;gap:6px;scrollbar-width:none;padding-bottom:2px}
+  .nav::-webkit-scrollbar{display:none}
+  .nav-group,.side-note,.side-bad{display:none}
+  .nav a{white-space:nowrap;padding:8px 12px;background:rgba(255,255,255,.07);gap:8px}
+  .nav a .ic{width:16px;height:16px}
+  .nav a.on::before{display:none}
+  .nav a.on{background:var(--pink);color:var(--on-accent)}
+  .main{padding-inline:4px}
+}
+@media (max-width:860px){
+  .daypills{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-bottom:12px}
+  .daypills button{display:flex;flex-direction:column;align-items:center;padding:7px 0 6px;border-radius:12px;background:var(--raise);font-size:11px;color:var(--muted);text-align:center}
+  .daypills button b{font-size:15px;color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+  .daypills button.is-today{box-shadow:inset 0 0 0 1.5px var(--pink)}
+  .daypills button.on{background:var(--invert-bg);color:var(--invert-fg)}
+  .daypills button.on b{color:inherit}
+  .wk{grid-template-columns:56px minmax(0,1fr)}
+  .wk-head:not(.is-sel),.wk-cell:not(.is-sel){display:none}
+  .ev{padding:13px 14px}
+  .ev-title{font-size:15px}
+  .ev-note,.ev-time{font-size:12.5px}
+  .meal{font-size:13px;padding:9px 14px}
+}
+@media (max-width:700px){
+  .grid2,.grid3,.two{grid-template-columns:minmax(0,1fr)}
+  .vision{columns:1}
+  .rule{flex-basis:100%}
+  .rule-state{display:none}
+  .trk{grid-template-columns:minmax(0,1fr) auto}
+  .trk .dots{grid-column:1/-1;order:3}
+  .dot{width:34px;height:34px}
+  .kv{grid-template-columns:minmax(0,1fr)}
+  .kv div:nth-child(odd){padding-bottom:0}
+  .kv div:nth-child(even){border-top:0;padding-top:2px}
+  .kv div:nth-child(2){border-top:0}
+  .panel{padding:18px}
+  .bal-row{grid-template-columns:minmax(0,120px) minmax(0,1fr) 24px}
+  .drawer-panel{border-radius:0}
+}
+@media (max-width:560px){
+  .grid4{grid-template-columns:minmax(0,1fr)}
+  .seg{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="side" aria-label="Навигация">
+    <div class="brand">
+      <a class="logo" href="#week" aria-label="outly, на главную">o<span class="logo-rest">utly</span><i></i></a>
+    </div>
+    <button class="collapse-btn" id="collapse" data-act="collapse" aria-label="Свернуть меню" title="Свернуть меню"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg></button>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-note"><b>17:00</b>Закрыть ноутбук → переодеться → выйти из квартиры. Не ложиться с телефоном.</div>
+    <button class="side-bad" data-act="bad" title="Плохой день"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 15.5a4 4 0 0 1 .6-8 5.5 5.5 0 0 1 10.4 1.7A3.3 3.3 0 0 1 17.5 15.5z"/><path d="M8.5 18.5l-1 2M12.5 18.5l-1 2M16.5 18.5l-1 2"/></svg><span>Плохой день</span></button>
+    <button class="side-bad" data-act="signout" title="Выйти из аккаунта"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3.5H6.5v17H14"/><path d="M10.5 12H21M17.5 8.5 21 12l-3.5 3.5"/></svg><span>Выйти</span></button>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <button class="rule" id="rule" data-act="tick" data-k="out"></button>
+      <span class="sync" id="sync" role="status"><i></i><span>Подключаюсь…</span></span>
+    </header>
+    <div class="title-row">
+      <div>
+        <h1 id="h1">Привет, Анна</h1>
+        <div class="sub" id="sub"></div>
+      </div>
+      <div class="actions">
+        <button class="btn-black" data-act="add"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Добавить</button>
+        <button class="btn-ghost" data-act="bad">Плохой день?</button>
+        <button class="btn-round" data-act="thisweek" aria-label="Вернуться к текущей неделе" title="К текущей неделе"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5v4h4"/></svg></button>
+      </div>
+    </div>
+    <div class="ctrl" id="ctrl">
+      <div class="weekpill" id="weekpill">
+        <button data-act="prev" aria-label="Предыдущая неделя"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg></button>
+        <span id="weeklabel"></span>
+        <button data-act="next" aria-label="Следующая неделя"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+      </div>
+      <nav class="seg" id="seg" aria-label="Масштаб">
+        <a href="#today" data-seg="today">Сегодня</a><a href="#week" data-seg="week">Неделя</a><a href="#month" data-seg="month">Месяц</a>
+      </nav>
+    </div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<div class="drawer" id="drawer" hidden>
+  <div class="drawer-bg" data-act="close"></div>
+  <section class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <button class="btn-round drawer-x" data-act="close" aria-label="Закрыть"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="drawer-body" id="drawer-body"></div>
+  </section>
+</div>
+
+<div class="login" id="login" hidden>
+  <form class="login-card" data-form="login">
+    <div class="logo-big">outly<i></i></div>
+    <p class="lead" style="margin:0">Войди тем же аккаунтом, что и в бюджете. Отметки будут общими на телефоне и Mac.</p>
+    <label class="fl"><span class="fl-label">Почта</span><input id="login-email" type="email" autocomplete="username" required></label>
+    <label class="fl"><span class="fl-label">Пароль</span><input id="login-pass" type="password" autocomplete="current-password" required></label>
+    <p class="ef-err" id="login-err" role="alert"></p>
+    <button type="submit" class="btn-black" style="justify-content:center">Войти</button>
+  </form>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+/* ================= data ================= */
+const START = new Date(2026, 10, 23); // пн, 23 ноября 2026 — старт первого месяца
+const DAYS = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const MONTHS_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const THEMES = ['Body','Brain','Explore','People + DIY','Night out','Budapest day','Reset day'];
+const WORK_FROM = 8*60, WORK_TO = 17*60, SLEEP_AT = 23*60;
+
+const IC = {
+  week:'<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+  track:'<circle cx="12" cy="12" r="8.5"/><path d="m8.5 12.3 2.4 2.4 4.6-5.2"/>',
+  spheres:'<circle cx="8" cy="8" r="4"/><circle cx="16.5" cy="9.5" r="3"/><circle cx="10.5" cy="16.5" r="3.5"/>',
+  month:'<rect x="3.5" y="4" width="17" height="16.5" rx="3"/><path d="M3.5 9.5h17M8.5 13.5h.01M12 13.5h.01M15.5 13.5h.01M8.5 17h.01M12 17h.01"/>',
+  wallet:'<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v3.5"/><rect x="4" y="8.5" width="16.5" height="11" rx="2.5"/><path d="M16 14h.01"/>',
+  bulb:'<path d="M9.5 18h5M10.5 21h3"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/>',
+  compass:'<circle cx="12" cy="12" r="8.5"/><path d="m15.2 8.8-1.9 4.5-4.5 1.9 1.9-4.5z"/>',
+  dumbbell:'<path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/>',
+  pin:'<path d="M12 21s6.5-5.8 6.5-11A6.5 6.5 0 0 0 5.5 10c0 5.2 6.5 11 6.5 11z"/><circle cx="12" cy="10" r="2.3"/>',
+  book:'<path d="M3 5.5c3-1.5 6-1.5 9 .5v14c-3-2-6-2-9-.5zM21 5.5c-3-1.5-6-1.5-9 .5v14c3-2 6-2 9-.5z"/>',
+  note:'<path d="M9 17.5V5.5l10-2v12"/><circle cx="6.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="15.5" r="2.5"/>',
+  scissors:'<circle cx="6" cy="6.5" r="2.5"/><circle cx="6" cy="17.5" r="2.5"/><path d="M8 8 19.5 19.5M8 16 19.5 4.5"/>',
+  users:'<circle cx="9" cy="8.5" r="3.2"/><path d="M3 19.5a6 6 0 0 1 12 0"/><path d="M15.5 5.6a3.2 3.2 0 0 1 0 5.8M17.5 14.2a6 6 0 0 1 3.5 5.3"/>',
+  ticket:'<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5V10a2 2 0 0 0 0 4v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 16.5V14a2 2 0 0 0 0-4z"/><path d="M14 7v2M14 11v2M14 15v2"/>',
+  moon:'<path d="M19.5 14.5A7.5 7.5 0 1 1 9.5 4.5a6 6 0 0 0 10 10z"/>',
+  check:'<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  laptop:'<rect x="4.5" y="5" width="15" height="10.5" rx="1.5"/><path d="M2.5 19h19"/>',
+  door:'<path d="M14 3.5H6.5v17H14"/><path d="M10.5 12H21M17.5 8.5 21 12l-3.5 3.5"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  fork:'<path d="M7 3v7M5 3v4.5a2 2 0 0 0 4 0V3M7 10v11M17 21V3c-2 1.5-3 4-3 7v4h3"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  star:'<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+  bag:'<path d="M5 8h14l-1 12.5H6z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>',
+  heart:'<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.4 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  spark:'<path d="M12 3.5c.6 4.4 2.1 5.9 6.5 6.5-4.4.6-5.9 2.1-6.5 6.5-.6-4.4-2.1-5.9-6.5-6.5 4.4-.6 5.9-2.1 6.5-6.5z"/><path d="M18.5 16v4M16.5 18h4"/>'
+};
+const icon = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${IC[n] || IC.star}</svg>`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* Сферы Анны — её список, все подпункты. every — норма «раз в N дней» для каждого пункта */
+const DEFAULT_SPHERES = [
+  {id:'body', name:'Body', hue:'yellow', icon:'dumbbell', items:[
+    {id:'yoga',     text:'Йога', note:'Дома', every:3},
+    {id:'pilates',  text:'Пилатес', note:'В студии', every:7},
+    {id:'walk',     text:'Прогулка без цели', note:'Шаги и голова. Подкаст или музыка в наушниках', every:1},
+    {id:'tennis',   text:'Теннис', note:'На корте, 2 раза в месяц', every:14},
+    {id:'massage',  text:'Массаж', note:'Раз в месяц', every:30}]},
+  {id:'brain', name:'Brain', hue:'sage', icon:'book', items:[
+    {id:'learn',    text:'Саморазвитие и обучение', note:'Целенаправленно: от финансовой грамотности до истории. Всесторонне развитый человек', every:3},
+    {id:'articles', text:'Статьи и журналы', note:'Интересное, а не лента', every:3},
+    {id:'docs',     text:'Документалки и YouTube', note:'Фильмы и видео, после которых знаешь больше', every:7},
+    {id:'critical', text:'Критическое мышление', note:'Разбирать аргументы, искать слабые места', every:7},
+    {id:'industry', text:'Музыкальная индустрия', note:'Что, где, как, когда. Бизнес-литература по теме', every:7},
+    {id:'newmusic', text:'Новая музыка', note:'Маленькие артисты и легенды. Шарить за музыку', every:3},
+    {id:'english',  text:'Английский', note:'Вернуться на занятия', every:4}]},
+  {id:'play', name:'Soul', hue:'pink', icon:'spark', items:[
+    {id:'books',    text:'Книги и фильмы', note:'', every:2},
+    {id:'fanfic',   text:'Фанфики', note:'', every:4},
+    {id:'diy',      text:'DIY', note:'Любое своими руками', every:7},
+    {id:'budapest', text:'Узнавать Будапешт', note:'Кафешки и места, чтобы было что показать гостям. Кроме парламента', every:7},
+    {id:'vibe',     text:'Вайбкодинг, Pinterest, комната', note:'Свои проекты и обустройство', every:4},
+    {id:'culture',  text:'Кино, театр, выставки, кафе', note:'', every:7},
+    {id:'puzzles',  text:'Судоку, кроссворды, Murdoku', note:'И другие игры для головы', every:4},
+    {id:'journal',  text:'Дневник', note:'', every:3},
+    {id:'tg',       text:'Свой ТГ-канал', note:'Отзывы на книги и посты со смыслом', every:7}]},
+  {id:'people', name:'People', hue:'blue', icon:'users', items:[
+    {id:'bars',     text:'Бары', note:'', every:10},
+    {id:'network',  text:'Люди и нетворкинг', note:'Общаться, знакомиться', every:7},
+    {id:'club',     text:'Читательский клуб', note:'Раз в месяц', every:30}]}
+];
+const SV = 2; // версия набора сфер: старые 8 сфер заменяются списком Анны
+const DIR_ALIAS = {health:'body', city:'play', mind:'brain', music:'brain', craft:'play', social:'people', culture:'play', personal:'play'};
+const ITEM_TRACK = {yoga:['sport'], pilates:['sport','out'], walk:['walk','out'], tennis:['sport','out'], massage:['out'],
+  learn:['learn'], articles:['read'], docs:['learn'], critical:['learn'], industry:['learn'], newmusic:['music'], english:['learn'],
+  books:['read'], fanfic:['read'], diy:['hobby'], budapest:['walk','out','newplace'], vibe:[], culture:['out','newplace'], puzzles:[], journal:[], tg:[],
+  bars:['friends','out'], network:['friends','out'], club:['friends','read']};
+const SPHERE_TRACK = {body:['sport'], brain:['learn'], play:[], people:['friends','out']};
+const MEAL = {id:'meal', name:'Еда', hue:'card', icon:'fork', items:[{text:'Завтрак'},{text:'Обед'},{text:'Ужин'},{text:'Перекус'}]};
+const NO_SPHERE = {id:'none', name:'Без сферы', hue:'sage', icon:'star', every:7, items:[]};
+const HUES = ['yellow','blue','pink','sage','lilac'];
+const EVERY = [1,2,3,4,5,7,10,14,21,30];
+
+const BANDS = [
+  {k:'morning', time:'07:00', label:'Утро'},
+  {k:'work',    time:'08:00', label:'Работа'},
+  {k:'after',   time:'17:00', label:'После работы'},
+  {k:'evening', time:'19:00', label:'Вечер'},
+  {k:'sleep',   time:'23:00', label:'Сон'}
+];
+
+/* Базовая неделя: каждый пункт из сфер Анны, без «или» и без бытового.
+   item — пункт сферы; freq: 2w — раз в 2 недели, m1 — первая неделя месяца, m4 — последняя */
+const EVENTS = [
+  {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
+  {id:'mo-bf',   d:0,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
+  {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
+  {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',fill:1},
+  {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk'},
+  {id:'mo-din',  d:0,t:'19:15–19:45',title:'Ужин',dir:'meal'},
+  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',fill:1},
+  {id:'mo-fic',  d:0,t:'21:15–22:15',title:'Фанфики',dir:'play',item:'fanfic'},
+  {id:'mo-diary',d:0,t:'22:15–22:30',title:'Дневник',note:'15 минут',dir:'play',item:'journal'},
+
+  {id:'tu-bf',   d:1,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
+  {id:'tu-art',  d:1,t:'07:40–08:00',title:'Статья за кофе',dir:'brain',item:'articles'},
+  {id:'tu-lunch',d:1,t:'12:00–13:00',title:'Обед',dir:'meal'},
+  {id:'tu-walk', d:1,t:'17:15–18:00',title:'Прогулка без цели',note:'40 минут, музыка в наушниках',dir:'body',item:'walk',fill:1},
+  {id:'tu-din',  d:1,t:'18:15–18:45',title:'Ужин',dir:'meal'},
+  {id:'tu-mb',   d:1,t:'19:00–20:00',title:'Музыкальная индустрия',dir:'brain',item:'industry',fill:1,mb:1},
+  {id:'tu-music',d:1,t:'20:15–21:15',title:'Новая музыка',note:'3 маленьких артиста и 1 легенда',dir:'brain',item:'newmusic'},
+  {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books'},
+
+  {id:'we-yoga', d:2,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
+  {id:'we-bf',   d:2,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
+  {id:'we-lunch',d:2,t:'12:00–13:00',title:'Обед',dir:'meal'},
+  {id:'we-bud',  d:2,t:'17:30–18:45',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',fill:1},
+  {id:'we-din',  d:2,t:'19:00–19:30',title:'Ужин',dir:'meal'},
+  {id:'we-learn',d:2,t:'19:45–20:45',title:'Саморазвитие',dir:'brain',item:'learn',fill:1,topic:1},
+  {id:'we-puz',  d:2,t:'21:00–21:30',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles'},
+  {id:'we-vibe', d:2,t:'21:30–22:15',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
+  {id:'we-diary',d:2,t:'22:15–22:30',title:'Дневник',note:'15 минут',dir:'play',item:'journal'},
+
+  {id:'th-bf',   d:3,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
+  {id:'th-crit', d:3,t:'07:40–08:00',title:'Критическое мышление',note:'Разобрать один аргумент из новостей',dir:'brain',item:'critical'},
+  {id:'th-lunch',d:3,t:'12:00–13:00',title:'Обед',dir:'meal'},
+  {id:'th-walk', d:3,t:'17:15–18:00',title:'Прогулка без цели',dir:'body',item:'walk'},
+  {id:'th-din',  d:3,t:'18:00–18:30',title:'Ужин',dir:'meal'},
+  {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',fill:1},
+  {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',fill:1,hobby:1},
+
+  {id:'fr-yoga', d:4,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
+  {id:'fr-bf',   d:4,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
+  {id:'fr-lunch',d:4,t:'12:00–13:00',title:'Обед',dir:'meal'},
+  {id:'fr-walk', d:4,t:'17:15–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
+  {id:'fr-din',  d:4,t:'18:00–18:30',title:'Ужин',dir:'meal'},
+  {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',fill:1},
+  {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',fill:1},
+
+  {id:'sa-bf',   d:5,t:'09:00–09:45',title:'Завтрак',dir:'meal'},
+  {id:'sa-eng',  d:5,t:'10:00–11:00',title:'Английский',note:'Занятие',dir:'brain',item:'english'},
+  {id:'sa-lunch',d:5,t:'12:00–13:00',title:'Обед',note:'в новом кафе',dir:'meal'},
+  {id:'sa-bud',  d:5,t:'13:00–15:30',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest',fill:1},
+  {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',fill:1,freq:'2w',par:0},
+  {id:'sa-din',  d:5,t:'18:30–19:00',title:'Ужин',dir:'meal'},
+  {id:'sa-room', d:5,t:'19:30–21:00',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
+  {id:'sa-film', d:5,t:'21:00–22:30',title:'Фильм дома',dir:'play',item:'books'},
+
+  {id:'su-bf',   d:6,t:'09:30–10:00',title:'Завтрак',dir:'meal'},
+  {id:'su-walk', d:6,t:'10:00–11:30',title:'Margaret Island',note:'Длинная прогулка',tag:'Reset day',dir:'body',item:'walk',fill:1},
+  {id:'su-lunch',d:6,t:'12:00–13:00',title:'Обед',dir:'meal'},
+  {id:'su-doc',  d:6,t:'13:30–14:30',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
+  {id:'su-tg',   d:6,t:'14:45–15:45',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
+  {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',fill:1,freq:'m1'},
+  {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',fill:1,freq:'m4'},
+  {id:'su-din',  d:6,t:'18:30–19:00',title:'Ужин',dir:'meal'},
+  {id:'su-book', d:6,t:'19:15–20:15',title:'Книга',dir:'play',item:'books'},
+  {id:'su-puz',  d:6,t:'20:30–21:15',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
+  {id:'su-diary',d:6,t:'21:15–21:30',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal'}
+];
+
+const TRACK = [
+  {k:'out',     label:'Вышла из дома вне работы', short:'Вышла из дома', target:7, goal:'7 дней'},
+  {k:'walk',    label:'Прогулялась 40 минут',     short:'Прогулка 40 мин', target:5, goal:'5 дней'},
+  {k:'sport',   label:'Занималась спортом',       short:'Спорт',          target:3, goal:'3 раза'},
+  {k:'read',    label:'Читала книгу',             short:'Чтение',         target:5, goal:'5 дней'},
+  {k:'learn',   label:'Изучала что-то новое',     short:'Узнала новое',   target:3, goal:'3 раза'},
+  {k:'music',   label:'Открыла новую музыку',     short:'Новая музыка',   target:2, goal:'2 раза'},
+  {k:'hobby',   label:'Занималась хобби',         short:'Хобби',          target:1, goal:'1 раз'},
+  {k:'friends', label:'Увиделась с друзьями',     short:'Друзья',         target:2, goal:'2 раза'},
+  {k:'newplace',label:'Сходила в новое место',    short:'Новое место',    target:1, goal:'1 раз'},
+  {k:'sleep',   label:'Спала минимум 8 часов',    short:'Сон 8 часов',    target:5, goal:'5–7 ночей'}
+];
+
+const MONTH = [
+  {name:'Break the cycle', main:'Главное: разорвать сценарий «работа → кровать → телефон».',
+   items:['Выйти из квартиры каждый день','Три прогулки по 40 минут','Одна тренировка','Одно утро с йогой','Сходить в новое кафе','Начать читать книгу']},
+  {name:'Build the routine', items:['Две тренировки','Одно исследование нового района','Два занятия по музыкальному бизнесу','Найти новое хобби','Встретиться с друзьями','Посмотреть один фильм из своего списка']},
+  {name:'Expand', items:['Попробовать реформер или новую спортивную активность','Сходить на выставку или мероприятие','Изучить новый музыкальный жанр','Закончить первый небольшой DIY-проект','Устроить самостоятельное свидание в городе']},
+  {name:'Make it yours', items:['Провести первый книжный клуб','Подвести итоги прочитанного и изученного','Найти 3 новых любимых места в Будапеште','Посмотреть, какие активности действительно понравились','Составить расписание следующего месяца']}
+];
+const VISION = [
+  'Знаешь несколько любимых районов Будапешта и регулярно находишь новые',
+  'Есть спортивная рутина, которая приносит удовольствие',
+  'Прочитала 2–3 книги и обсудила их с кем-то',
+  'Можешь поддержать разговор о разных жанрах и знаешь новых артистов',
+  'Лучше разбираешься в publishing, sync, distribution',
+  'Есть хобби, не связанное с работой',
+  'Регулярно ходишь в кино, на выставки, в кафе',
+  'Чаще видишься с друзьями',
+  'Есть любимые места, привычки и маленькие традиции',
+  'Вечер после работы больше не пустое место для телефона'
+];
+
+/* Категории бюджета. Сами суммы личные: они живут только в базе (plan.budget), в коде их нет — репозиторий публичный */
+const BUDGET_CATS = [
+  {k:'sport',   label:'Спорт', hue:'yellow', icon:'dumbbell', note:'Студия пилатеса, корт для тенниса, массаж.'},
+  {k:'cafe',    label:'Кафе и прогулки', hue:'blue', icon:'pin', note:'Деньги на радость: кофе после прогулки, завтрак вне дома, встреча с подругой.'},
+  {k:'culture', label:'Кино, выставки, мероприятия', hue:'pink', icon:'ticket', note:'Обязательно оставляем. Жизнь не должна состоять только из бесплатного.'},
+  {k:'hobby',   label:'Хобби и самообразование', hue:'sage', icon:'scissors', note:'Материалы, книга, небольшой мастер-класс.'},
+  {k:'shop',    label:'Шопинг', hue:'lilac', icon:'bag', note:'Отдельные деньги, которые не нужно оправдывать.'},
+  {k:'reserve', label:'Свободный резерв', hue:'reserve', icon:'heart', note:'Если дорогих мероприятий не было, остаток переходит на следующий месяц.'}
+];
+
+const BUCKET = ['Прогуляться по Margaret Island','Исследовать район вокруг Bartók Béla út','Сходить на смотровые площадки','Найти любимую кофейню для чтения','Посетить Hungarian National Gallery','Исследовать книжные магазины','Сходить на Central Market Hall','Свидание с собой: кофе + прогулка + книжный'];
+const MB = [
+  ['Music publishing','Royalties, PROs, collecting societies'],
+  ['Distribution','DSPs, metadata, streaming economics'],
+  ['Sync licensing','Music supervision, music libraries'],
+  ['Artist development','A&R, marketing, audience growth']
+];
+const MB_LINKS = [
+  ['Music Business Worldwide','новости и аналитика','https://www.musicbusinessworldwide.com/'],
+  ['Billboard','новости, чарты, индустрия','https://www.billboard.com/'],
+  ['MIDiA Research','аналитика рынка','https://www.midiaresearch.com/'],
+  ['Music Business Association','материалы и исследования','https://musicbiz.org/'],
+  ['Berklee Online','курсы по музыкальному бизнесу','https://online.berklee.edu/']
+];
+const DISCOVER = ['5 новых артистов','1 новый жанр','1 альбом целиком','1 интервью с артистом или продюсером','1 разбор интересного музыкального кейса'];
+const TOPICS = ['История и геополитика','Психология и поведение людей','Экономика и финансы','Искусство и история искусства','Культура разных стран','Наука и технологии','Философия','Архитектура и урбанистика'];
+const HOBBIES = [
+  {k:'clay',t:'Лепка из глины',n:'Небольшие предметы, украшения, посуда'},
+  {k:'embroidery',t:'Вышивка',n:'Небольшие проекты дома'},
+  {k:'lino',t:'Линогравюра',n:'Собственные принты'},
+  {k:'scrap',t:'Scrapbooking',n:'Коллажи, фото, бумага, журналы'},
+  {k:'jewelry',t:'Украшения',n:'Собирать свои аксессуары'},
+  {k:'paint',t:'Рисование',n:'Акварель, скетчинг, эксперименты'}
+];
+const SWAPS = [['Нет сил на зал','20 минут прогулки'],['Нет сил учиться','Прочитать одну статью'],['Нет сил на DIY','Посмотреть идеи и подготовить материалы'],['Нет сил на встречу','Выйти одной за кофе']];
+const NORMS = [['Сон','23:00–07:00, 8 часов'],['Работа','08:00–17:00, обед 12:00–13:00'],['Утренняя активность','3 раза в неделю'],['Спорт','3 раза в неделю'],['Прогулки','Каждый день'],['Исследование Будапешта','1–2 раза в неделю'],['Самообразование','3 занятия в неделю'],['Чтение','20–30 минут в день'],['Музыкальные открытия','2 раза в неделю'],['Хобби','1–2 раза в неделю'],['Английский','2 занятия в неделю'],['Социализация','Минимум 2 встречи в неделю']];
+const PHONE = [
+  ['Не ложиться с телефоном после работы','17:00 → закрыла ноутбук → переоделась → вышла. Не обязательно на тренировку, хватит 20 минут прогулки.'],
+  ['Утро принадлежит тебе','Сон 23:00–07:00. Три активных утра в неделю, в остальные спокойный завтрак без ленты.'],
+  ['Выйти из дома должно быть легко','Сумка собрана с вечера, одежда на виду, есть список мест и людей, которым можно написать.'],
+  ['Ограничить думскроллинг, а не интернет','Instagram и TikTok убрать с главного экрана и не открывать ленты до первого выхода из дома. Pinterest, YouTube и Claude остаются.']
+];
+const SPORT = [['Йога дома','3 раза в неделю'],['Пилатес в студии','1–2 раза в неделю'],['Прогулки','Каждый день'],['Теннис','2 раза в месяц'],['Массаж','Раз в месяц']];
+
+/* ================= dates ================= */
+const pad = n => String(n).padStart(2,'0');
+const DAY_MS = 864e5;
+function mondayOf(date){ const d = new Date(date.getFullYear(), date.getMonth(), date.getDate()); d.setDate(d.getDate() - (d.getDay()+6)%7); return d; }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function sameDay(a, b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function isoWeek(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y = t.getUTCFullYear();
+  return {y, w: Math.ceil(((t - Date.UTC(y,0,1)) / DAY_MS + 1) / 7)};
+}
+function weekKey(mon){ const {y,w} = isoWeek(mon); return `week-${y}-W${pad(w)}`; }
+function mondayFromKey(k){ const m = /week-(\d+)-W(\d+)/.exec(k); const mon1 = mondayOf(new Date(+m[1], 0, 4)); return addDays(mon1, (+m[2]-1)*7); }
+function weekIdx(mon){ return Math.round((mondayOf(mon) - START) / DAY_MS / 7); }
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const START_ISO = iso(START);
+const fromIso = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+const daysBetween = (a, b) => Math.round((fromIso(b) - fromIso(a)) / DAY_MS);
+const mbIdx = mon => Math.max(0, weekIdx(mon)) % 4;
+const topicIdx = mon => Math.max(0, weekIdx(mon)) % TOPICS.length;
+function rangeLabel(mon){
+  const sun = addDays(mon, 6);
+  return mon.getMonth()===sun.getMonth()
+    ? `${mon.getDate()}–${sun.getDate()} ${MONTHS_SHORT[sun.getMonth()]}`
+    : `${mon.getDate()} ${MONTHS_SHORT[mon.getMonth()]} – ${sun.getDate()} ${MONTHS_SHORT[sun.getMonth()]}`;
+}
+const mins = s => { const [h,m] = String(s).split(':').map(Number); return (h||0)*60 + (m||0); };
+const hm = m => `${pad(Math.floor(m/60))}:${pad(m%60)}`;
+const evRange = ev => ev.t.split('–').map(mins);
+const money = n => Math.round(n).toLocaleString('ru-RU');
+const dayIdx = d => (d.getDay()+6)%7;
+function plural(n, one, few, many){ const a = n%10, b = n%100; if (a===1 && b!==11) return one; if (a>=2 && a<=4 && (b<12 || b>14)) return few; return many; }
+function agoText(n){ if (n === null || n === undefined) return 'ещё не было'; if (n <= 0) return 'сегодня'; if (n === 1) return 'вчера'; return `${n} ${plural(n,'день','дня','дней')} назад`; }
+const everyText = n => ({1:'каждый день', 7:'раз в неделю', 14:'раз в 2 недели', 21:'раз в 3 недели', 30:'раз в месяц'})[n] || `раз в ${n} ${plural(n,'день','дня','дней')}`;
+/* Заголовок в духе «Stay up to date, Dr.Olivia». Фразы утверждены Анной; внутри времени суток меняются по дням */
+const HEAD = {
+  morning: ['Coffee first. Laptop later, Anna', 'Slow morning, clear head, Anna', 'Good morning, Anna'],
+  work:    ['Stay up to date, Anna', 'Work mode. Life loading, Anna'],
+  late:    ['Almost 17:00, Anna'],
+  after:   ["Work's done. Life's on, Anna"],
+  evening: ["Evening's yours, Anna", 'Screen off. Plans on, Anna', 'Make tonight count, Anna'],
+  weekend: ["Weekend's on, Anna", 'No laptop. All life, Anna', 'DAY'],
+  night:   ['Lights out, Anna', 'Phone down. Lights out, Anna', 'Rest is part of the plan, Anna', 'Good night, Anna']
+};
+function headline(){
+  const h = S.now.getHours(), wkend = dayIdx(S.now) >= 5;
+  const doy = Math.floor((new Date(S.now.getFullYear(), S.now.getMonth(), S.now.getDate()) - new Date(S.now.getFullYear(), 0, 0)) / DAY_MS);
+  const pick = list => list[doy % list.length];
+  let slot;
+  if (h >= 23 || h < 5) slot = 'night';
+  else if (h >= 19) slot = 'evening';
+  else if (wkend) slot = 'weekend';
+  else if (h < 8) slot = 'morning';
+  else if (h < 15) slot = 'work';
+  else if (h < 17) slot = 'late';
+  else slot = 'after';
+  const t = pick(HEAD[slot]);
+  return t === 'DAY' ? (dayIdx(S.now) === 5 ? 'Budapest day, Anna' : 'Reset day, Anna') : t;
+}
+
+/* ================= state & storage ================= */
+const S = {view:'week', weekOff:0, selDay:null, now:new Date(), edit:null, confirmDel:null, pendingRender:false, opener:null};
+const preStart = () => S.now < START;                       // до понедельника, 23 ноября
+const baseMonday = () => { const m = mondayOf(S.now); return m < START ? new Date(START) : m; };
+const curMonday = () => addDays(baseMonday(), 7*S.weekOff);
+const todayWeek = () => weekKey(baseMonday());
+const activeDay = () => preStart() ? 0 : dayIdx(S.now);
+
+const store = {mode:'local', db:null, uid:null, docs:{}, dirty:{}, timers:{}, chain:{}, subs:{}, live:{}, pushed:{}, sync:'wait'};
+const LS = 'low:';
+function lsGet(n){ try { const v = localStorage.getItem(LS+n); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
+function lsSet(n, v){ try { localStorage.setItem(LS+n, JSON.stringify(v)); } catch(e){} }
+function D(name){ if (!store.docs[name]) store.docs[name] = lsGet(name) || {}; return store.docs[name]; }
+const ref = name => store.db.collection('outly').doc(name);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
+function setSync(s){
+  store.sync = s;
+  const el = document.getElementById('sync');
+  const txt = {wait:'Подключаюсь…', ok:'Сохраняется в облаке', local:'Сохраняется в этом браузере', slow:'Нет связи, сохраню позже', err:'Не удалось сохранить', signedout:'Войди, чтобы сохранять в облаке', denied:'Нет доступа к базе: нужны правила Firebase'}[s];
+  el.className = 'sync ' + (s==='ok' ? 'ok' : ['err','slow','denied'].includes(s) ? 'err' : '');
+  el.querySelector('span').textContent = txt;
+}
+function save(name){
+  store.dirty[name] = (store.dirty[name]||0) + 1;
+  lsSet(name, store.docs[name]);
+  clearTimeout(store.timers[name]);
+  store.timers[name] = setTimeout(() => flush(name), 450);
+}
+function flush(name){
+  if (store.mode !== 'db'){ store.dirty[name] = 0; return; }
+  const v = store.dirty[name];
+  const body = JSON.parse(JSON.stringify(store.docs[name] || {}));
+  store.chain[name] = (store.chain[name] || Promise.resolve()).then(async () => {
+    try { await ref(name).set(body); setSync('ok'); }
+    catch(e){
+      const code = e && e.code;
+      if (code === 'unavailable'){
+        await wait(700 + Math.random()*900);
+        try { await ref(name).set(body); setSync('ok'); } catch(e2){ setSync('slow'); }
+      } else if (code === 'permission-denied' || code === 'unauthenticated') setSync('denied');
+      else setSync('err');
+    }
+    if (store.dirty[name] === v) store.dirty[name] = 0;
+  });
+}
+function syncSubs(){
+  if (store.mode !== 'db') return;
+  const want = new Set(['plan', todayWeek(), weekKey(curMonday())]);
+  for (const n of Object.keys(store.subs)) if (!want.has(n)){ store.subs[n](); delete store.subs[n]; }
+  for (const n of want){
+    if (store.subs[n]) continue;
+    const timer = setTimeout(() => { if (!store.live[n]) setSync('slow'); }, 10000);
+    store.subs[n] = ref(n).onSnapshot(snap => {
+      if (!snap.metadata.fromCache){
+        clearTimeout(timer);
+        if (!store.live[n]){ store.live[n] = 1; if (store.sync === 'wait' || store.sync === 'slow') setSync('ok'); }
+      }
+      if (store.dirty[n]) return;
+      if (snap.exists){
+        const data = JSON.parse(JSON.stringify(snap.data() || {}));
+        store.docs[n] = data; lsSet(n, data);
+      } else if (!snap.metadata.fromCache && !store.pushed[n] && store.docs[n] && Object.keys(store.docs[n]).length){
+        store.pushed[n] = 1; save(n);   // отметки, сделанные до подключения, отправляем в облако
+      }
+      render({soft:true});
+    }, err => { clearTimeout(timer); delete store.subs[n]; setSync(err && err.code === 'permission-denied' ? 'denied' : 'err'); });
+  }
+}
+
+/* ================= spheres ================= */
+const normSphere = s => ({id:s.id, name:s.name, hue:s.hue, icon:s.icon, items:s.items.map(it => ({id:it.id, text:it.text, note:it.note || '', every:it.every || 7, dates:[]}))});
+const dirOf = id => DIR_ALIAS[id] || id;
+function spheresList(){ const p = D('plan'); return (Array.isArray(p.spheres) && p.sv === SV) ? p.spheres : DEFAULT_SPHERES.map(normSphere); }
+function ensureSpheres(){ const p = D('plan'); if (!Array.isArray(p.spheres) || p.sv !== SV){ p.spheres = DEFAULT_SPHERES.map(normSphere); p.sv = SV; } return p.spheres; }
+function migratePlan(){
+  const p = D('plan');
+  if (p.sv === SV){   // Play → Soul (решение Анны), если сфера ещё не переименована вручную
+    const pl = Array.isArray(p.spheres) && p.spheres.find(x => x.id === 'play' && x.name === 'Play');
+    if (pl){ pl.name = 'Soul'; save('plan'); }
+    return;
+  }
+  if (!Array.isArray(p.spheres) && !p.hist) return;
+  const old = p.hist || {}, hist = {};
+  for (const k in old){ const n = dirOf(k); hist[n] = (hist[n] || []).concat(old[k]).sort(); }
+  p.hist = hist; p.spheres = DEFAULT_SPHERES.map(normSphere); p.sv = SV;
+  save('plan');
+}
+function sphereOf(id){ if (id === 'meal') return MEAL; const k = dirOf(id); return spheresList().find(s => s.id === k) || NO_SPHERE; }
+function histToggle(spId, date, on){
+  const p = D('plan'); p.hist = p.hist || {};
+  const arr = (p.hist[spId] || []).slice();
+  if (on){ arr.push(date); arr.sort(); while (arr.length > 200) arr.shift(); }
+  else { const i = arr.lastIndexOf(date); if (i >= 0) arr.splice(i, 1); }
+  p.hist[spId] = arr;
+}
+function toggleItemDate(itemId, date, on){
+  for (const s of ensureSpheres()) for (const it of s.items) if (it.id === itemId){
+    it.dates = it.dates || [];
+    if (on){ it.dates.push(date); it.dates.sort(); while (it.dates.length > 60) it.dates.shift(); }
+    else { const i = it.dates.lastIndexOf(date); if (i >= 0) it.dates.splice(i, 1); }
+    return true;
+  }
+  return false;
+}
+const statusOf = (ago, every) => ago === null ? 'never' : ago <= every ? 'ok' : ago <= every*2 ? 'soon' : 'late';
+function itemStats(){
+  const today = iso(S.now), out = [];
+  for (const s of spheresList()) for (const it of s.items){
+    const d = (it.dates || []).filter(x => x <= today && x >= START_ISO);
+    const last = d.length ? d[d.length-1] : null, ago = last ? daysBetween(last, today) : null, every = it.every || 7;
+    out.push({s, it, last, ago, every, st:statusOf(ago, every), ratio: ago === null ? 99 : ago / every});
+  }
+  return out;
+}
+function sphereStats(){
+  const hist = D('plan').hist || {}, today = iso(S.now), items = itemStats();
+  return spheresList().map(s => {
+    const h = (hist[s.id] || []).filter(x => x <= today && x >= START_ISO);
+    const mine = items.filter(x => x.s.id === s.id);
+    return {s, h, items:mine, c7:h.filter(x => daysBetween(x, today) < 7).length, behind:mine.filter(x => x.st !== 'ok').length};
+  });
+}
+
+/* ================= events ================= */
+function mergeEv(base, ed){
+  if (!ed) return {...base};
+  const e = {...base, ...ed, edited:1};
+  if (ed.title && ed.title !== base.title){ delete e.mb; delete e.topic; delete e.hobby; delete e.tag; }
+  if (ed.dir === 'meal') e.fill = 0;
+  return e;
+}
+function occurs(e, mon){
+  const f = e.freq || 'w'; if (f === 'w') return true;
+  const date = addDays(mon, e.d);
+  if (f === '2w') return isoWeek(mon).w % 2 === (e.par || 0);
+  if (f === 'm1') return date.getDate() <= 7;
+  if (f === 'm4') return addDays(date, 7).getMonth() !== date.getMonth();
+  return true;
+}
+function eventsFor(mon){
+  const tpl = D('plan').tpl || {}, ov = D(weekKey(mon)).ov || {};
+  const tE = tpl.edit || {}, tA = tpl.add || {}, wE = ov.edit || {}, wA = ov.add || {};
+  const list = [], keep = e => { e.dir = dirOf(e.dir); if (!e.del && (e.once || occurs(e, mon))) list.push(e); };
+  for (const b of EVENTS){ let e = mergeEv(b, tE[b.id]); e.origin = 'base'; if (wE[b.id]){ e = mergeEv(e, wE[b.id]); e.once = 1; } keep(e); }
+  for (const id in tA){ let e = {...tA[id], id, origin:'tpl'}; if (wE[id]){ e = mergeEv(e, wE[id]); e.once = 1; } keep(e); }
+  for (const id in wA) keep({...wA[id], id, origin:'week', once:1});
+  return list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
+}
+function bandOf(ev){
+  const s = evRange(ev)[0];
+  if (ev.d < 5){ if (s < WORK_FROM) return 'morning'; if (s < WORK_TO) return 'work'; if (s < 19*60) return 'after'; return 'evening'; }
+  if (s < 12*60) return 'morning'; if (s < 18*60) return 'after'; return 'evening';
+}
+function curBand(d, m){
+  if (m < 7*60 || m >= SLEEP_AT) return 'sleep';
+  if (d < 5){ if (m < WORK_FROM) return 'morning'; if (m < WORK_TO) return 'work'; if (m < 19*60) return 'after'; return 'evening'; }
+  if (m < 12*60) return 'morning'; if (m < 18*60) return 'after'; return 'evening';
+}
+function isNow(ev, mon){
+  if (!sameDay(addDays(mon, ev.d), S.now)) return false;
+  const m = S.now.getHours()*60 + S.now.getMinutes(); const [a, b] = evRange(ev);
+  return m >= a && m < b;
+}
+function workSeq(items){
+  const out = []; let cur = WORK_FROM;
+  for (const ev of items){ const [a, b] = evRange(ev); if (a > cur) out.push({strip:[cur, a]}); out.push({ev}); cur = Math.max(cur, b); }
+  if (cur < WORK_TO) out.push({strip:[cur, WORK_TO]});
+  return out;
+}
+
+/* ================= helpers on data ================= */
+const tickOn = (w, k, d) => !!(w.ticks && Array.isArray(w.ticks[k]) && w.ticks[k][d]);
+function setTick(w, k, d, val){
+  w.ticks = w.ticks || {};
+  const arr = Array.isArray(w.ticks[k]) ? w.ticks[k].slice() : [0,0,0,0,0,0,0];
+  arr[d] = val ? 1 : 0; w.ticks[k] = arr;
+}
+function counts(w){ const r = {}; TRACK.forEach(t => { r[t.k] = [0,1,2,3,4,5,6].filter(d => tickOn(w, t.k, d)).length; }); return r; }
+function score(w){ const c = counts(w); return TRACK.filter(t => c[t.k] >= t.target).length; }
+const isDone = (w, id) => !!(w.done && w.done[id]);
+
+const trackOf = ev => ITEM_TRACK[ev.item] || SPHERE_TRACK[ev.dir] || [];
+function toggleEvent(wk, id){
+  const mon = mondayFromKey(wk), ev = eventsFor(mon).find(e => e.id === id);
+  if (!ev || ev.dir === 'meal') return;
+  const w = D(wk), date = iso(addDays(mon, ev.d)), on = !(w.done && w.done[id]);
+  w.done = w.done || {};
+  if (on){ w.done[id] = 1; trackOf(ev).forEach(k => setTick(w, k, ev.d, 1)); } else delete w.done[id];
+  histToggle(ev.dir, date, on);
+  if (ev.item) toggleItemDate(ev.item, date, on);
+  save(wk); save('plan'); render();
+}
+function toggleTick(wk, k, d){ const w = D(wk); setTick(w, k, d, !tickOn(w, k, d)); save(wk); render(); }
+function toggleIn(docName, field, key){
+  const o = D(docName); o[field] = o[field] || {};
+  if (o[field][key]) delete o[field][key]; else o[field][key] = 1;
+  save(docName); render();
+}
+
+/* ================= pieces ================= */
+function card(ev, wk, w, mon, wide){
+  const sp = sphereOf(ev.dir), done = isDone(w, ev.id), now = isNow(ev, mon);
+  let tag = ev.tag || '', note = ev.note || '';
+  if (ev.mb){ const i = mbIdx(mon); tag = `Неделя ${i+1} из 4`; note = `${MB[i][0]}: ${MB[i][1]}`; }
+  if (ev.topic){ tag = 'Тема недели'; note = TOPICS[topicIdx(mon)]; }
+  if (ev.hobby){ const hb = HOBBIES.find(x => x.k === D('plan').hobby); note = hb ? hb.t : 'Хобби месяца ещё не выбрано'; }
+  const cls = ['ev', ev.fill ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : ''].join(' ');
+  const t = esc(ev.title);
+  return `<article class="${cls}" data-act="edit" data-id="${ev.id}" data-wk="${wk}">
+    <div class="ev-top"><span class="chip-ic hue-${sp.hue}" title="${esc(sp.name)}">${icon(sp.icon)}</span>
+      <button class="ev-check" data-act="ev" data-id="${ev.id}" data-wk="${wk}" aria-pressed="${done}" aria-label="${done ? 'Снять отметку' : 'Отметить как сделанное'}: ${t}">${icon('check')}</button></div>
+    ${tag ? `<span class="ev-tag">${esc(tag)}</span>` : ''}
+    <h3 class="ev-title"><button data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${t}">${t}</button></h3>
+    ${note ? `<p class="ev-note">${esc(note)}</p>` : ''}
+    <p class="ev-time">${ev.t}${freqText(ev)}</p>
+    ${now ? `<span class="ev-now">Сейчас идёт…</span>` : ''}
+  </article>`;
+}
+const freqText = ev => ev.once ? ' · разово' : ev.freq === '2w' ? ' · раз в 2 недели' : (ev.freq === 'm1' || ev.freq === 'm4') ? ' · раз в месяц' : '';
+const mealPill = (ev, wk, wide) =>
+  `<button class="meal" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${wide ? ev.t + (ev.note ? ' · ' + esc(ev.note) : '') : ev.t.split('–')[0]}</span></button>`;
+const item = (ev, wk, w, mon, wide) => ev.dir === 'meal' ? mealPill(ev, wk, wide) : card(ev, wk, w, mon, wide);
+const strip = (a, b, long) => `<div class="work-strip">${icon('laptop')}<span>${long ? 'Работа ' : ''}${hm(a)}–${hm(b)}</span></div>`;
+const checkRow = (on, attrs, text) =>
+  `<button class="check ${on ? 'on' : ''}" ${attrs} aria-pressed="${on}"><span class="box">${icon('check')}</span><span class="check-t">${text}</span></button>`;
+const sleepBtn = (wk, w, d, label) =>
+  `<button class="sleep ${tickOn(w,'sleep',d) ? 'on' : ''}" data-act="tick" data-k="sleep" data-d="${d}" data-wk="${wk}" aria-pressed="${tickOn(w,'sleep',d)}" title="Спала минимум 8 часов">${icon('moon')}<span>${label}</span></button>`;
+const swapsHtml = () => SWAPS.map(([a,b]) => `<div class="swap"><span>${a}</span>${icon('arrow')}<b>${b}</b></div>`).join('');
+function neglectHtml(limit){
+  const items = itemStats();
+  if (!items.some(x => x.last)) return `<p class="lead" style="margin:0">Пока нет отметок. Отмечай кружком сделанные дела, и здесь появятся пункты, до которых давно не доходили руки.</p>`;
+  const neg = items.filter(x => x.st !== 'ok').sort((a, b) => b.ratio - a.ratio).slice(0, limit);
+  if (!neg.length) return `<p class="lead" style="margin:0">Всё в норме. Хороший баланс.</p>`;
+  return `<div class="neg">${neg.map(x => `<div class="neg-item"><span class="chip-ic hue-${x.s.hue}">${icon(x.s.icon)}</span>
+      <span class="neg-t"><b>${esc(x.it.text)}</b><small>${esc(x.s.name)} · ${agoText(x.ago)}</small></span>
+      <button class="mini" data-act="quick-add" data-dir="${x.s.id}" data-item="${x.it.id}" data-text="${esc(x.it.text)}">${icon('plus')}В план</button></div>`).join('')}</div>`;
+}
+
+/* ================= views ================= */
+function vWeek(){
+  const mon = curMonday(), wk = weekKey(mon), w = D(wk), evs = eventsFor(mon);
+  const isCur = sameDay(mon, mondayOf(S.now)), tIdx = dayIdx(S.now);
+  const sel = S.selDay ?? (isCur ? tIdx : 0);
+  const cb = isCur ? curBand(tIdx, S.now.getHours()*60 + S.now.getMinutes()) : null;
+
+  let h = '<div class="daypills">';
+  for (let d = 0; d < 7; d++){
+    const dt = addDays(mon, d);
+    h += `<button data-act="day" data-d="${d}" class="${d===sel ? 'on' : ''} ${isCur && d===tIdx ? 'is-today' : ''}" aria-pressed="${d===sel}">${DAYS_SHORT[d]}<b>${dt.getDate()}</b></button>`;
+  }
+  h += '</div><div class="wk">';
+  h += `<div class="wk-corner"><span>Нед</span><b>${isoWeek(mon).w}</b></div>`;
+  for (let d = 0; d < 7; d++){
+    const dt = addDays(mon, d), out = tickOn(w, 'out', d);
+    const cls = ['wk-head', isCur && d===tIdx ? 'is-today' : '', d >= 5 ? 'is-wkend' : '', d===sel ? 'is-sel' : ''].join(' ');
+    h += `<div class="${cls}"><div class="wh-text"><div class="wh-top"><span class="wh-date">${dt.getDate()}</span><span class="wh-day">${DAYS_SHORT[d]}</span></div><span class="wh-theme">${THEMES[d]}</span></div>
+      <button class="out-dot ${out ? 'on' : ''}" data-act="tick" data-k="out" data-d="${d}" data-wk="${wk}" aria-pressed="${out}" aria-label="Вышла из дома вне работы, ${DAYS[d]}" title="Вышла из дома вне работы">${icon('door')}</button></div>`;
+  }
+  for (const band of BANDS){
+    const here = cb === band.k;
+    h += `<div class="wk-axis ${here ? 'is-now' : ''}"><span class="ax-time">${here ? hm(S.now.getHours()*60 + S.now.getMinutes()) : band.time}</span><span class="ax-label">${band.label}</span></div>`;
+    for (let d = 0; d < 7; d++){
+      let inner = '';
+      const items = evs.filter(e => e.d === d && bandOf(e) === band.k);
+      if (band.k === 'sleep') inner = sleepBtn(wk, w, d, '23:00 · 8 ч сна');
+      else if (band.k === 'work'){
+        inner = d < 5 ? workSeq(items).map(x => x.strip ? strip(x.strip[0], x.strip[1]) : item(x.ev, wk, w, mon)).join('')
+                      : `<div class="free-strip">${icon('sun')}<span>выходной</span></div>`;
+      } else inner = items.map(e => item(e, wk, w, mon)).join('');
+      h += `<div class="wk-cell ${d===sel ? 'is-sel' : ''}">${inner}</div>`;
+    }
+  }
+  h += '</div><div class="legend"><span class="legend-t">Баланс недели</span>';
+  for (const s of spheresList()){
+    const mine = evs.filter(e => e.dir === s.id);
+    h += `<span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)} <em>${mine.filter(e => isDone(w, e.id)).length}/${mine.length}</em></span>`;
+  }
+  h += `<span><span class="chip-ic hue-pink">${icon('door')}</span>кружок в шапке дня: вышла из дома вне работы</span></div>`;
+
+  const plain = evs.filter(e => e.dir !== 'meal');
+  const sub = [`Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки <b>${score(w)}/10</b>`, `Music Business: <b>${MB[mbIdx(mon)][0]}</b>`];
+  const neg = itemStats().filter(x => x.last && x.st !== 'ok').sort((a, b) => b.ratio - a.ratio)[0];
+  if (neg) sub.push(`Давно не было: <b>${esc(neg.it.text)}</b>, ${agoText(neg.ago)}`);
+  const wi = weekIdx(mon);
+  if (wi >= 0 && wi < 4) sub.push(`Месяц 1: <b>неделя ${wi+1} из 4</b>`);
+  return {title:headline(), sub, html:h};
+}
+
+function vToday(){
+  const pre = preStart(), mon = baseMonday(), wk = weekKey(mon), w = D(wk), d = activeDay();
+  const evs = eventsFor(mon).filter(e => e.d === d);
+  const row = (time, inner) => `<div class="tl-row"><span class="tl-time">${time}</span>${inner}</div>`;
+  let rows = '';
+  const byBand = k => evs.filter(e => bandOf(e) === k);
+  byBand('morning').forEach(e => { rows += row(e.t.split('–')[0], item(e, wk, w, mon, true)); });
+  if (d < 5) workSeq(byBand('work')).forEach(x => {
+    rows += x.strip ? row(hm(x.strip[0]), strip(x.strip[0], x.strip[1], true)) : row(x.ev.t.split('–')[0], item(x.ev, wk, w, mon, true));
+  });
+  ['after','evening'].forEach(k => byBand(k).forEach(e => { rows += row(e.t.split('–')[0], item(e, wk, w, mon, true)); }));
+  rows += row('23:00', sleepBtn(wk, w, d, 'Сон. 8 часов до 07:00'));
+
+  const chips = TRACK.map(t => {
+    const on = tickOn(w, t.k, d);
+    return `<button class="tchip ${on ? 'on' : ''}" data-act="tick" data-k="${t.k}" data-d="${d}" data-wk="${wk}" aria-pressed="${on}"><span class="box">${icon('check')}</span>${t.short}</button>`;
+  }).join('');
+  const plain = evs.filter(e => e.dir !== 'meal');
+  const html = `<div class="today">
+    <section class="panel"><p class="eyebrow">${pre ? 'Первый день' : 'План на день'} · ${THEMES[d]}</p><p class="lead">${pre ? 'Так будет выглядеть понедельник. Любое дело можно заменить заранее: нажми на него.' : 'Нажми на дело, чтобы заменить его на другое или поменять время.'}</p><div class="tl">${rows}</div></section>
+    <div class="stack-v">
+      <section class="panel"><p class="eyebrow">Давно не было</p><h2>До чего давно не доходили руки</h2><p class="lead">«В план» ставит пункт в сегодняшний день.</p>${neglectHtml(4)}</section>
+      ${pre ? '' : `<section class="panel"><h2>Отметь за сегодня</h2><p class="lead">Отметки попадают в привычки недели. Сделанные дела в плане отмечают их сами.</p><div class="tchips">${chips}</div></section>`}
+      <section class="panel"><p class="eyebrow">Если день не идёт</p>${swapsHtml()}</section>
+    </div></div>`;
+  if (pre){ const n = daysBetween(iso(S.now), START_ISO); return {title:'Старт в понедельник, 23 ноября', sub:[`До старта: <b>${n} ${plural(n,'день','дня','дней')}</b>`, `Тема первого дня: <b>${THEMES[0]}</b>`], html}; }
+  return {title:`${DAYS[d]}, ${S.now.getDate()} ${MONTHS_GEN[S.now.getMonth()]}`, sub:[`Тема дня: <b>${THEMES[d]}</b>`, `Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки недели <b>${score(w)}/10</b>`], html};
+}
+
+function vSpheres(){
+  const stats = sphereStats(), today = iso(S.now);
+  const max = Math.max(1, ...stats.map(x => x.c7));
+  const bal = stats.map(x => `<div class="bal-row"><span class="bal-name"><span class="chip-ic hue-${x.s.hue}">${icon(x.s.icon)}</span><span>${esc(x.s.name)}</span></span>
+      <div class="bal-track"><i style="width:${x.c7/max*100}%;background:var(--${x.s.hue})"></i></div><span class="bal-n">${x.c7}</span></div>`).join('');
+  const cards = stats.map(x => {
+    const s = x.s;
+    const cells = [...Array(14)].map((_, i) => {
+      const dt = iso(addDays(S.now, i - 13)), on = x.h.includes(dt);
+      return `<i class="${i === 13 ? 'today' : ''}" style="${on ? `background:var(--${s.hue})` : ''}" title="${dt}"></i>`;
+    }).join('');
+    const pill = !x.items.some(y => y.last) ? '<span class="st st-never">ещё не было</span>'
+      : x.behind ? `<span class="st st-late">${x.behind} ${plural(x.behind, 'пункт ждёт', 'пункта ждут', 'пунктов ждут')}</span>` : '<span class="st st-ok">всё в норме</span>';
+    const items = x.items.map(y => {
+      const it = y.it, didToday = (it.dates || []).includes(today);
+      return `<div class="sp-item">
+        <div class="sp-it-head"><i class="dotst st-${y.st}"></i>
+          <input class="it-name" id="itn-${it.id}" data-sp="${s.id}" data-it="${it.id}" data-field="text" value="${esc(it.text)}" aria-label="Название пункта" autocomplete="off">
+          <span class="it-ago">${agoText(y.ago)}</span></div>
+        ${it.note ? `<p class="it-note">${esc(it.note)}</p>` : ''}
+        <div class="sp-it-ctrl">
+          <span class="sel"><select id="ie-${it.id}" data-sp="${s.id}" data-it="${it.id}" data-field="every" aria-label="Как часто: ${esc(it.text)}">${EVERY.map(n => `<option value="${n}" ${n === y.every ? 'selected' : ''}>${everyText(n)}</option>`).join('')}</select></span>
+          ${preStart() ? '' : `<button class="mini ${didToday ? 'on' : ''}" data-act="it-did" data-sp="${s.id}" data-it="${it.id}" aria-pressed="${didToday}">${didToday ? icon('check') : ''}Было сегодня</button>`}
+          <button class="mini" data-act="quick-add" data-dir="${s.id}" data-item="${it.id}" data-text="${esc(it.text)}">${icon('plus')}В план</button>
+          <button class="icon-btn" data-act="it-del" data-sp="${s.id}" data-it="${it.id}" aria-label="Удалить «${esc(it.text)}»" title="Удалить">${icon('x')}</button></div></div>`;
+    }).join('');
+    const confirm = S.confirmDel === s.id;
+    return `<section class="sp-card">
+      <div class="sp-top"><button class="chip-ic hue-${s.hue}" data-act="sp-hue" data-sp="${s.id}" aria-label="Сменить цвет сферы" title="Сменить цвет">${icon(s.icon)}</button>
+        <input class="sp-name" id="spn-${s.id}" data-sp="${s.id}" data-field="name" value="${esc(s.name)}" aria-label="Название сферы" autocomplete="off">${pill}</div>
+      <div><div class="strip14">${cells}</div><div class="strip-cap"><span>2 недели назад</span><span>за 7 дней: <b>${x.c7}</b></span><span>сегодня</span></div></div>
+      <div class="sp-items">${items || '<p class="lead" style="margin:0">Пока пусто. Добавь, чем хочешь заниматься в этой сфере.</p>'}</div>
+      <form class="add-row" data-form="item" data-sp="${s.id}"><input id="add-${s.id}" name="text" placeholder="Добавить пункт" autocomplete="off" aria-label="Новый пункт: ${esc(s.name)}"><button type="submit" aria-label="Добавить пункт">${icon('plus')}</button></form>
+      <button class="sp-del ${confirm ? 'confirm' : ''}" data-act="sp-del" data-sp="${s.id}">${confirm ? 'Точно удалить? Нажми ещё раз' : 'Удалить сферу'}</button>
+    </section>`;
+  }).join('');
+  const total = stats.reduce((a, x) => a + x.items.length, 0);
+  const html = `<div class="stack-v">
+    <div class="grid2">
+      <section class="panel"><p class="eyebrow">Баланс за 7 дней</p><h2>Сколько раз было в каждой сфере</h2><p class="lead">Считаются отмеченные дела из расписания и кнопки «Было сегодня».</p>${bal}</section>
+      <section class="panel"><p class="eyebrow">Давно не было</p><h2>До чего не доходили руки</h2><p class="lead">Пункты, где прошло больше дней, чем в их норме. Кружок у пункта: зелёный — в норме, жёлтый — пора, розовый — давно.</p>${neglectHtml(6)}</section>
+    </div>
+    <div class="sp-grid">${cards}
+      <section class="sp-card sp-new"><h3>Новая сфера</h3><p class="lead" style="margin:0">Цвет меняется нажатием на кружок. Названия пунктов и сфер можно править прямо в карточке.</p>
+        <form class="add-row" data-form="sphere"><input id="add-sphere" name="name" placeholder="Название сферы" autocomplete="off" aria-label="Название новой сферы"><button type="submit" aria-label="Создать сферу">${icon('plus')}</button></form></section>
+    </div></div>`;
+  return {title:'Body · Brain · Soul · People', sub:[`Сфер: <b>${stats.length}</b>`, `Пунктов: <b>${total}</b>`, `Отметок за 7 дней: <b>${stats.reduce((a, x) => a + x.c7, 0)}</b>`], html};
+}
+
+function vMonth(){
+  const plan = D('plan'), checks = plan.month || {}, idx = weekIdx(mondayOf(S.now));
+  let total = 0, got = 0;
+  const cards = MONTH.map((wkData, wi) => {
+    const mon = addDays(START, 7*wi);
+    const n = wkData.items.filter((_, ii) => checks[`${wi}-${ii}`]).length;
+    total += wkData.items.length; got += n;
+    return `<section class="mw ${idx === wi ? 'is-cur' : ''}">
+      <div class="mw-head"><p class="eyebrow" style="margin:0">Неделя ${wi+1}${idx === wi ? ' · сейчас' : ''}</p><h3>${wkData.name}</h3><span class="mw-date">${rangeLabel(mon)}</span></div>
+      <div class="mw-body">${wkData.main ? `<div class="mw-main">${wkData.main}</div>` : ''}
+        ${wkData.items.map((it, ii) => checkRow(!!checks[`${wi}-${ii}`], `data-act="month" data-i="${wi}-${ii}"`, it)).join('')}
+        <div class="mw-foot">${n} из ${wkData.items.length}</div></div></section>`;
+  }).join('');
+  const status = idx < 0 ? 'Старт: <b>понедельник, 23 ноября</b>' : idx < 4 ? `Сейчас <b>неделя ${idx+1}</b>` : '<b>Первый месяц позади</b>';
+  const html = `<div class="stack-v">
+    <p class="lead" style="margin:0">Адаптационный месяц. Задача не стать суперпродуктивной, а научиться регулярно жить за пределами квартиры и работы.</p>
+    <div class="grid4">${cards}</div>
+    <section class="panel"><p class="eyebrow">Как это выглядит через 3 месяца</p><h2>Когда на работе что-то идёт не так, большая часть жизни от этого не рушится</h2>
+      <ul class="vision" style="margin-top:14px">${VISION.map(v => `<li>${v}</li>`).join('')}</ul></section></div>`;
+  return {title:'Месяц 1. New life in Budapest', sub:[status, `Выполнено <b>${got} из ${total}</b>`], html};
+}
+
+function vTracker(){
+  const mon = curMonday(), wk = weekKey(mon), w = D(wk), c = counts(w), sc = score(w);
+  const isCur = sameDay(mon, mondayOf(S.now)), tIdx = dayIdx(S.now);
+  const msg = sc >= 7 ? ['Хорошая неделя', 'Жизнь действительно наполняется. 7 из 10 уже отличный результат.']
+    : sc >= 4 ? ['Неделя набирает ход', 'Всё засчитывается, даже минимальная версия плана.']
+    : ['Начало есть', 'Это не экзамен. Одна прогулка сегодня уже сдвигает неделю.'];
+  const rows = TRACK.map(t => {
+    const met = c[t.k] >= t.target;
+    const dots = [0,1,2,3,4,5,6].map(d => {
+      const on = tickOn(w, t.k, d);
+      return `<button class="dot ${on ? 'on' : ''} ${isCur && d === tIdx ? 'is-today' : ''}" data-act="tick" data-k="${t.k}" data-d="${d}" data-wk="${wk}" aria-pressed="${on}" aria-label="${t.label}, ${DAYS[d]}">${DAYS_SHORT[d]}</button>`;
+    }).join('');
+    return `<div class="trk ${met ? 'met' : ''}"><div class="trk-label"><b>${t.label}</b><span>Цель: ${t.goal}</span></div><div class="dots">${dots}</div><span class="trk-count">${c[t.k]} / ${t.target}</span></div>`;
+  }).join('');
+  const html = `<div class="stack-v">
+    <section class="panel"><div class="score">
+      <div><p class="eyebrow">Неделя ${rangeLabel(mon)}</p><div class="big">${sc}<small> / 10</small></div></div>
+      <div class="score-msg"><b>${msg[0]}</b>${msg[1]}</div></div>
+      <div class="progress" aria-hidden="true">${TRACK.map((t, i) => `<i class="${i < sc ? 'on' : ''}"></i>`).join('')}</div></section>
+    <section class="panel">${rows}</section></div>`;
+  return {title:'Привычки недели', sub:[`Пунктов выполнено <b>${sc} из 10</b>`], html};
+}
+
+function budgetForm(b){
+  const v = x => (x || x === 0) ? x : '';
+  const fields = BUDGET_CATS.map(c => `<label class="fl"><span class="fl-label">${c.label}, ₴</span><input name="${c.k}" id="bud-${c.k}" inputmode="decimal" value="${v(b && b.items && b.items[c.k])}" autocomplete="off"></label>`).join('');
+  return `<form class="panel bud-form" data-form="budget">
+    <div><p class="eyebrow">Суммы хранятся только в твоей базе, в коде приложения их нет</p><h2>${b ? 'Изменить бюджет' : 'Заполни бюджет на месяц'}</h2></div>
+    <div class="bud-grid">
+      <label class="fl"><span class="fl-label">Свободный бюджет на месяц, ₴</span><input name="total" id="bud-total" inputmode="decimal" value="${v(b && b.total)}" autocomplete="off"></label>
+      <label class="fl"><span class="fl-label">Накопления, ₴</span><input name="savings" id="bud-savings" inputmode="decimal" value="${v(b && b.savings)}" autocomplete="off"></label>
+      ${fields}
+    </div>
+    <p class="ef-err" id="bud-err" hidden></p>
+    <div class="ef-actions"><button type="submit" class="btn-black">Сохранить</button>${b ? '<button type="button" class="btn-ghost" data-act="budget-cancel">Отмена</button>' : ''}</div>
+  </form>`;
+}
+function vBudget(){
+  const pb = D('plan').budget, b = pb && pb.total ? pb : null;
+  if (!b || S.budgetEdit) return {title:'Бюджет на месяц', sub:['Суммы видишь только ты'], html:budgetForm(b)};
+  const items = BUDGET_CATS.map(c => ({...c, sum: +((b.items || {})[c.k]) || 0}));
+  const sav = b.savings || 0, live = b.total - sav, dist = items.reduce((a, i) => a + i.sum, 0);
+  const segs = [{label:'Накопления', sum:sav, cls:'s-ink'}].concat(items.map(i => ({label:i.label, sum:i.sum, cls: i.hue === 'reserve' ? 's-reserve' : 'hue-' + i.hue})));
+  const bar = segs.filter(x => x.sum > 0).map(x => `<span class="${x.cls}" style="flex:${x.sum}" title="${x.label}: ${money(x.sum)} ₴"></span>`).join('');
+  const legend = segs.map(x => `<span><i class="${x.cls}"></i>${x.label} · ${money(x.sum)} ₴</span>`).join('');
+  const cards = items.map(i => `<div class="bud-card">
+      <div class="bud-head"><span class="chip-ic ${i.hue === 'reserve' ? 's-reserve' : 'hue-' + i.hue}">${icon(i.icon)}</span><span class="bud-pct">${live > 0 ? Math.round(i.sum / live * 100) : 0}% от суммы на жизнь</span></div>
+      <b style="font-weight:600">${i.label}</b><div class="bud-amt">${money(i.sum)} ₴</div>
+      <span class="bud-week">≈ ${money(i.sum / 4.3)} ₴ в неделю</span><p>${i.note}</p></div>`).join('');
+  const off = Math.round(dist) !== Math.round(live) ? `<div class="note">Распределено <b>${money(dist)} ₴</b> из ${money(live)} ₴ на жизнь. Поправить можно кнопкой «Изменить».</div>` : '';
+  const html = `<div class="stack-v">
+    <section class="panel"><div class="bud-top">
+      <div><p class="eyebrow">Свободный бюджет на месяц, после основных расходов</p><div class="big">${money(b.total)}<small> ₴</small></div></div>
+      <div class="bud-split"><div>Накопления<b>${money(sav)} ₴</b></div><div>На жизнь и активности<b>${money(live)} ₴</b></div>
+        <button class="btn-ghost" data-act="budget-edit">Изменить</button></div></div>
+      <div class="bar" role="img" aria-label="Распределение бюджета">${bar}</div><div class="bar-legend">${legend}</div></section>
+    ${off}
+    <div class="grid3">${cards}</div>
+    <div class="note">Это ориентир, а не обязательство потратить всё. Сначала откладываем ${money(sav)} ₴, остальное распределяем по жизни.</div></div>`;
+  const cafe = items.find(i => i.k === 'cafe');
+  return {title:'Бюджет на месяц', sub:[`Накопления <b>${money(sav)} ₴</b>`, `На жизнь <b>${money(live)} ₴</b>`, `Кафе <b>≈ ${money(cafe.sum / 4.3)} ₴</b> в неделю`], html};
+}
+
+function vIdeas(){
+  const plan = D('plan'), bucket = plan.bucket || {};
+  const mon = baseMonday(), wk = weekKey(mon), w = D(wk), disc = w.discover || {};
+  const mi = mbIdx(mon), ti = topicIdx(mon);
+  const bucketDone = BUCKET.filter((_, i) => bucket[i]).length;
+  const html = `<div class="grid2">
+    <section class="panel"><p class="eyebrow">Город · ${bucketDone} из ${BUCKET.length}</p><h2>Budapest bucket list</h2>
+      <p class="lead">Цель для City day в субботу. Отмечай, где уже была.</p>
+      ${BUCKET.map((b, i) => checkRow(!!bucket[i], `data-act="bucket" data-i="${i}"`, b)).join('')}
+      <div class="two"><div class="note"><b>Прогулка без цели</b>40–60 минут, подкаст, Дунай и незнакомые улицы. Каждый день, гигиена головы.</div>
+      <div class="note"><b>Исследование города</b>1–2 раза в неделю. Заранее выбранная цель: район, музей, рынок, кафе.</div></div></section>
+
+    <div class="stack-v">
+      <section class="panel"><p class="eyebrow">Профессиональный поток · вторник</p><h2>Music Business</h2>
+        <p class="lead">Четыре недели по кругу, потом повтор с более сложными материалами. После занятия короткая заметка: что узнала и как применить в работе.</p>
+        ${MB.map((m, i) => `<div class="mb-row ${i === mi ? 'is-cur' : ''}"><span class="mb-n">${i+1}</span><div><b>${m[0]}</b>${i === mi ? '<em>эта неделя</em>' : ''}<span>${m[1]}</span></div></div>`).join('')}
+        <div class="links">${MB_LINKS.map(l => `<a href="${l[2]}" target="_blank" rel="noopener"><b>${l[0]}</b><span>${l[1]}</span></a>`).join('')}</div></section>
+      <section class="panel"><p class="eyebrow">Музыка · неделя ${rangeLabel(mon)}</p><h2>Discover 5 new artists</h2>
+        <p class="lead">Через год это будет своя музыкальная база: Artist · Genre · Album · My thoughts.</p>
+        ${DISCOVER.map((x, i) => checkRow(!!disc[i], `data-act="disc" data-i="${i}" data-wk="${wk}"`, x)).join('')}</section>
+    </div>
+
+    <section class="panel"><p class="eyebrow">Общая эрудиция</p><h2>Тема недели: ${TOPICS[ti]}</h2>
+      <p class="lead" style="margin:0">Одна тема в неделю: 2–3 материала и одна документалка или лекция.</p>
+      <div class="topics">${TOPICS.map((t, i) => `<span class="${i === ti ? 'on' : ''}">${t}</span>`).join('')}</div></section>
+
+    <section class="panel"><p class="eyebrow">Читательский клуб</p><h2>Одна книга в месяц</h2>
+      <div class="kv" style="margin-top:10px"><div>Чтение</div><div>20–30 минут в день</div><div>Встреча</div><div>В конце месяца с подругой, созвоном тоже можно</div><div>Обсудить</div><div>Героев, сюжет, идеи, личные впечатления</div><div>Что читать</div><div>Художественная тоже считается</div></div></section>
+
+    <section class="panel" style="grid-column:1/-1"><p class="eyebrow">Хобби руками · четверг</p><h2>Выбери одно хобби на месяц</h2>
+      <p class="lead">Не покупать материалы сразу для пяти хобби. Задача месяца: один законченный проект.</p>
+      <div class="hobbies">${HOBBIES.map(hb => `<button class="hobby ${plan.hobby === hb.k ? 'on' : ''}" data-act="hobby" data-k="${hb.k}" aria-pressed="${plan.hobby === hb.k}"><b style="font-weight:600">${hb.t}</b><span>${hb.n}</span></button>`).join('')}</div></section>
+  </div>`;
+  return {title:'Чем наполнить вечер', sub:[`Music Business: <b>${MB[mi][0]}</b>`, `Эрудиция: <b>${TOPICS[ti]}</b>`, `Bucket list <b>${bucketDone}/${BUCKET.length}</b>`], html};
+}
+
+function vSystem(){
+  const dirs = spheresList().map(s => `<div class="dir-card"><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span><b>${esc(s.name)}</b><p>${esc(s.items.map(i => i.text).join(' · '))}</p></div>`).join('');
+  const kv = rows => `<div class="kv">${rows.map(r => `<div>${r[0]}</div><div>${r[1]}</div>`).join('')}</div>`;
+  const html = `<div class="stack-v">
+    <div class="grid4">${dirs}</div>
+    <div class="grid2">
+      <section class="panel"><p class="eyebrow">Базовые правила недели</p><h2>Ориентиры, а не обязательства</h2><p class="lead">За невыполнение себя не ругать.</p>${kv(NORMS)}</section>
+      <div class="stack-v">
+        <section class="panel"><p class="eyebrow">Как перестать проигрывать телефону</p><h2>Изменить условия, а не силу воли</h2>
+          <div class="rules" style="margin-top:8px">${PHONE.map((p, i) => `<div><i>${i+1}</i><span><b>${p[0]}</b>${p[1]}</span></div>`).join('')}</div></section>
+        <section class="panel"><p class="eyebrow">Спорт</p><h2>Без отдельной работы в голове</h2><p class="lead">Регулярная еда, достаточно белка, овощи, разумные порции. Без подсчёта каждой крошки.</p>${kv(SPORT)}</section>
+      </div>
+    </div></div>`;
+  return {title:'Система жизни', sub:[`<b>${spheresList().length}</b> сфер`, 'Цель: работа как <b>одна из частей</b> жизни'], html};
+}
+
+/* ================= drawer: add / edit / bad day ================= */
+const drawer = document.getElementById('drawer'), drawerBody = document.getElementById('drawer-body');
+function openDrawer(html, focusSel){
+  S.opener = document.activeElement;
+  drawerBody.innerHTML = html; drawer.hidden = false; document.body.style.overflow = 'hidden';
+  const f = drawer.querySelector(focusSel) || drawer.querySelector('.drawer-x');
+  if (f) f.focus();
+}
+function closeDrawer(){
+  drawer.hidden = true; document.body.style.overflow = ''; S.edit = null;
+  if (S.opener && document.body.contains(S.opener)) try { S.opener.focus({preventScroll:true}); } catch(e){}
+}
+function openBad(){
+  openDrawer(`<p class="eyebrow">Минимальная версия плана</p><h2 id="drawer-title">Плохой день тоже считается</h2>
+    <p class="lead">Никакого «раз сегодня не получилось всё, значит, ничего не делаю». Выбери маленькую версию.</p>
+    <div>${swapsHtml()}</div>
+    <div class="note"><b>Пролежала два часа с телефоном?</b> День не испорчен. Можно встать и выйти в 19:00. Не нужно ждать следующего понедельника.</div>
+    <div class="note"><b>Не знаешь, куда пойти?</b> Возьми любое место из <a href="#ideas" data-act="close">Budapest bucket list</a> или просто 20 минут вокруг района.</div>`);
+}
+function defaultTime(d, mon){
+  if (sameDay(addDays(mon, d), S.now)){
+    const m = S.now.getHours()*60 + S.now.getMinutes();
+    if (m >= WORK_TO && m < 22*60){ const s = Math.ceil((m + 5) / 15) * 15; return `${hm(s)}–${hm(Math.min(s + 60, SLEEP_AT - 30))}`; }
+  }
+  return d < 5 ? '17:30–18:30' : '11:00–12:00';
+}
+function openEventForm(o){
+  const mon = mondayFromKey(o.wk);
+  const ev = o.mode === 'edit' ? eventsFor(mon).find(e => e.id === o.id) : null;
+  if (o.mode === 'edit' && !ev) return;
+  const d = ev ? ev.d : (o.d ?? 0), date = addDays(mon, d);
+  const sph = spheresList();
+  const cur = {title: ev ? ev.title : (o.title || ''), dir: ev ? ev.dir : (o.dir || (sph[0] ? sph[0].id : 'meal')), note: ev ? (ev.note || '') : '', t: ev ? ev.t : defaultTime(d, mon), item: ev ? (ev.item || '') : (o.item || '')};
+  const [from, to] = cur.t.split('–');
+  S.edit = {mode:o.mode, wk:o.wk, id:o.id, origin: ev ? ev.origin : null, d};
+  const dirOpts = sph.concat([MEAL]).map(s => `<label class="opt"><input type="radio" name="dir" value="${s.id}" ${s.id === cur.dir ? 'checked' : ''}><span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)}</span></label>`).join('');
+  const dayOpts = o.mode === 'add' ? `<div class="fl" role="radiogroup" aria-labelledby="ef-day-l"><span class="fl-label" id="ef-day-l">День</span><div class="opts">${[0,1,2,3,4,5,6].map(i => `<label class="opt"><input type="radio" name="day" value="${i}" ${i === d ? 'checked' : ''}><span>${DAYS_SHORT[i]} ${addDays(mon, i).getDate()}</span></label>`).join('')}</div></div>` : '';
+  const showScope = !(o.mode === 'edit' && ev.origin === 'week');
+  const scope = showScope ? `<div class="fl" role="radiogroup" aria-labelledby="ef-scope-l"><span class="fl-label" id="ef-scope-l">Как часто</span><div class="opts">
+      <label class="opt"><input type="radio" name="scope" value="once" checked><span>${o.mode === 'add' ? 'Один раз' : 'Только ' + date.getDate() + ' ' + MONTHS_GEN[date.getMonth()]}</span></label>
+      <label class="opt"><input type="radio" name="scope" value="w"><span>Каждую неделю</span></label>
+      <label class="opt"><input type="radio" name="scope" value="2w"><span>Раз в 2 недели</span></label>
+      <label class="opt"><input type="radio" name="scope" value="m1"><span>Раз в месяц</span></label></div></div>` : '';
+  const canReset = ev && ((ev.origin === 'base' && ev.edited) || (ev.origin === 'tpl' && ev.once));
+  openDrawer(`<form class="ef" data-form="event" novalidate>
+    <div><p class="eyebrow">${o.mode === 'edit' ? `${DAYS[d]}, ${date.getDate()} ${MONTHS_GEN[date.getMonth()]}` : 'Неделя ' + rangeLabel(mon)}</p>
+      <h2 id="drawer-title">${o.mode === 'edit' ? 'Изменить дело' : 'Новое дело'}</h2></div>
+    <label class="fl"><span class="fl-label">Что делаю</span><input id="ef-title" name="title" value="${esc(cur.title)}" autocomplete="off"></label>
+    <input type="hidden" name="item" id="ef-item" value="${esc(cur.item)}">
+    <div class="fl" role="radiogroup" aria-labelledby="ef-dir-l"><span class="fl-label" id="ef-dir-l">Сфера</span><div class="opts">${dirOpts}</div></div>
+    <div class="fl"><span class="fl-label">Пункты этой сферы</span><div class="ef-suggest" id="ef-suggest"></div></div>
+    ${dayOpts}
+    <div class="fl-row"><label class="fl"><span class="fl-label">Начало</span><input type="time" id="ef-from" name="from" value="${from}" step="300"></label>
+      <label class="fl"><span class="fl-label">Конец</span><input type="time" id="ef-to" name="to" value="${to}" step="300"></label></div>
+    <label class="fl"><span class="fl-label">Заметка</span><input id="ef-note" name="note" value="${esc(cur.note)}" placeholder="Необязательно" autocomplete="off"></label>
+    ${scope}
+    <p class="ef-err" id="ef-err" hidden></p>
+    <div class="ef-actions"><button type="submit" class="btn-black">Сохранить</button><button type="button" class="btn-ghost" data-act="close">Отмена</button></div>
+    ${o.mode === 'edit' ? `<div class="ef-more">${canReset ? '<button type="button" class="btn-link" data-act="ef-reset">Вернуть как в плане</button>' : '<span></span>'}<button type="button" class="btn-link danger" data-act="ef-del">Удалить</button></div>` : ''}
+  </form>`, o.mode === 'add' && cur.title ? '#ef-from' : '#ef-title');
+  updateSuggest();
+}
+function updateSuggest(){
+  const box = document.getElementById('ef-suggest'); if (!box) return;
+  const f = box.closest('form'), dir = (f.querySelector('input[name="dir"]:checked') || {}).value;
+  const sp = sphereOf(dir);
+  box.innerHTML = sp.items && sp.items.length
+    ? sp.items.map(it => `<button type="button" class="sug" data-act="ef-pick" data-item="${it.id || ''}" data-text="${esc(it.text)}">${esc(it.text)}</button>`).join('')
+    : 'В этой сфере пока нет занятий. Их можно добавить в разделе «Сферы».';
+}
+function formScope(){ const r = drawer.querySelector('input[name="scope"]:checked'); return r ? r.value : 'once'; }
+function weekOv(wk){ const w = D(wk); w.ov = w.ov || {}; w.ov.edit = w.ov.edit || {}; w.ov.add = w.ov.add || {}; return w.ov; }
+function planTpl(){ const p = D('plan'); p.tpl = p.tpl || {}; p.tpl.edit = p.tpl.edit || {}; p.tpl.add = p.tpl.add || {}; return p.tpl; }
+const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function saveEventForm(f){
+  const E = S.edit; if (!E) return;
+  const fd = new FormData(f), err = document.getElementById('ef-err');
+  const title = String(fd.get('title') || '').trim();
+  if (!title){ err.textContent = 'Напиши, что будешь делать.'; err.hidden = false; document.getElementById('ef-title').focus(); return; }
+  const from = String(fd.get('from') || '') || '18:00';
+  let to = String(fd.get('to') || '');
+  if (!to || mins(to) <= mins(from)) to = hm(Math.min(mins(from) + 30, 23*60 + 55));
+  const obj = {title, t:`${from}–${to}`, dir:String(fd.get('dir') || 'none'), note:String(fd.get('note') || '').trim(), item:String(fd.get('item') || '')};
+  const scope = formScope(), repeat = scope === 'once' ? null : {freq:scope, par:isoWeek(mondayFromKey(E.wk)).w % 2};
+  if (E.mode === 'add'){
+    const d = fd.get('day') !== null ? +fd.get('day') : E.d, id = newId('u');
+    if (repeat){ planTpl().add[id] = {...obj, ...repeat, d}; save('plan'); }
+    else { weekOv(E.wk).add[id] = {...obj, d}; save(E.wk); }
+  } else if (E.origin === 'week'){
+    const ov = weekOv(E.wk); ov.add[E.id] = {...ov.add[E.id], ...obj}; save(E.wk);
+  } else if (repeat){
+    const tpl = planTpl();
+    if (E.origin === 'base') tpl.edit[E.id] = {...obj, ...repeat}; else tpl.add[E.id] = {...tpl.add[E.id], ...obj, ...repeat};
+    save('plan');
+    const ov = weekOv(E.wk); if (ov.edit[E.id]){ delete ov.edit[E.id]; save(E.wk); }
+  } else { weekOv(E.wk).edit[E.id] = obj; save(E.wk); }
+  closeDrawer(); render();
+}
+function deleteEvent(){
+  const E = S.edit; if (!E) return;
+  if (E.origin === 'week'){ delete weekOv(E.wk).add[E.id]; save(E.wk); }
+  else if (formScope() !== 'once'){
+    const tpl = planTpl();
+    if (E.origin === 'base') tpl.edit[E.id] = {del:1}; else delete tpl.add[E.id];
+    save('plan');
+  } else { weekOv(E.wk).edit[E.id] = {del:1}; save(E.wk); }
+  closeDrawer(); render();
+}
+function resetEvent(){
+  const E = S.edit; if (!E) return;
+  const ov = weekOv(E.wk);
+  if (ov.edit[E.id]){ delete ov.edit[E.id]; save(E.wk); }
+  else if (E.origin === 'base'){ delete planTpl().edit[E.id]; save('plan'); }
+  closeDrawer(); render();
+}
+
+/* ================= render ================= */
+const VIEWS = {week:vWeek, today:vToday, spheres:vSpheres, tracker:vTracker, month:vMonth, budget:vBudget, ideas:vIdeas, system:vSystem};
+const NAV = [
+  {g:'Жизнь'}, {k:'week', t:'Расписание', i:'week'}, {k:'today', t:'Сегодня', i:'sun'}, {k:'spheres', t:'Сферы', i:'spheres'}, {k:'tracker', t:'Привычки', i:'track'}, {k:'month', t:'Месяц 1', i:'month'},
+  {g:'Опоры'}, {k:'budget', t:'Бюджет', i:'wallet'}, {k:'ideas', t:'Идеи', i:'bulb'}, {k:'system', t:'Система', i:'compass'}
+];
+document.getElementById('nav').innerHTML = NAV.map(n => n.g ? `<div class="nav-group">${n.g}</div>` : `<a href="#${n.k}" data-nav="${n.k}" title="${n.t}">${icon(n.i)}<span>${n.t}</span></a>`).join('');
+
+function typing(){ const a = document.activeElement; return !!(a && a.closest && a.closest('#view') && a.matches('input,select,textarea')); }
+function focusSelector(){
+  const el = document.activeElement;
+  if (!el || el === document.body) return null;
+  if (el.id && el.closest('#view')) return '#' + CSS.escape(el.id);
+  if (!el.dataset || !el.dataset.act) return null;
+  return Object.entries(el.dataset).map(([k, v]) => `[data-${k.replace(/[A-Z]/g, m => '-' + m.toLowerCase())}="${CSS.escape(String(v))}"]`).join('');
+}
+function render(opts){
+  if (opts && opts.soft && typing()){ S.pendingRender = true; return; }
+  S.pendingRender = false;
+  migratePlan();
+  const focus = focusSelector();
+  const v = S.view, out = VIEWS[v]();
+  document.querySelectorAll('[data-nav]').forEach(a => { const on = a.dataset.nav === v; a.classList.toggle('on', on); if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  document.querySelectorAll('[data-seg]').forEach(a => a.classList.toggle('on', a.dataset.seg === v));
+  document.getElementById('ctrl').hidden = !['week','today','month','tracker'].includes(v);
+  document.getElementById('weekpill').hidden = !['week','tracker'].includes(v);
+  document.getElementById('seg').hidden = v === 'tracker';
+  const cm = curMonday();
+  document.getElementById('weeklabel').textContent = rangeLabel(cm) + (sameDay(cm, mondayOf(S.now)) ? ' · эта неделя' : weekIdx(cm) === 0 ? ' · старт' : '');
+  document.querySelector('[data-act="prev"]').disabled = cm <= START;
+  document.getElementById('h1').textContent = out.title;
+  document.getElementById('sub').innerHTML = out.sub.map(s => `<span>${s}</span>`).join('');
+  document.getElementById('view').innerHTML = out.html;
+
+  const tw = todayWeek(), td = dayIdx(S.now), pre = preStart(), outOn = !pre && tickOn(D(tw), 'out', td);
+  const rule = document.getElementById('rule');
+  rule.disabled = pre;
+  rule.dataset.wk = tw; rule.dataset.d = td;
+  rule.className = 'rule' + (outOn ? ' on' : '');
+  rule.setAttribute('aria-pressed', outOn);
+  rule.innerHTML = `<span class="rule-ic">${icon('door')}</span><span class="rule-text"><b>Главное правило:</b> каждый день хотя бы одно событие вне дома, не связанное с работой</span><span class="rule-state">${pre ? 'С 23 ноября' : outOn ? icon('check') + 'Сегодня есть' : 'Отметить сегодня'}</span>`;
+
+  if (focus){ try { const el = document.querySelector(focus); if (el) el.focus({preventScroll:true}); } catch(e){} }
+}
+
+/* ================= events ================= */
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const a = b.dataset.act;
+  if (a !== 'sp-del' && S.confirmDel){ S.confirmDel = null; if (S.view === 'spheres' && !['it-did','it-del','sp-hue'].includes(a)) render(); }
+  if (a === 'ev') toggleEvent(b.dataset.wk, b.dataset.id);
+  else if (a === 'edit') openEventForm({mode:'edit', wk:b.dataset.wk, id:b.dataset.id});
+  else if (a === 'tick') toggleTick(b.dataset.wk, b.dataset.k, +b.dataset.d);
+  else if (a === 'prev' || a === 'next'){ if (a === 'prev' && curMonday() <= START) return; S.weekOff += a === 'next' ? 1 : -1; S.selDay = null; syncSubs(); render(); }
+  else if (a === 'thisweek'){ S.weekOff = 0; S.selDay = null; syncSubs(); if (!['week','tracker'].includes(S.view)) location.hash = 'week'; else render(); }
+  else if (a === 'day'){ S.selDay = +b.dataset.d; render(); }
+  else if (a === 'add'){
+    const inWeek = S.view === 'week' || S.view === 'tracker', mon = inWeek ? curMonday() : baseMonday();
+    const isCur = sameDay(mon, mondayOf(S.now));
+    const d = S.view === 'week' ? (S.selDay ?? (isCur ? dayIdx(S.now) : 0)) : (isCur ? dayIdx(S.now) : 0);
+    openEventForm({mode:'add', wk:weekKey(mon), d});
+  }
+  else if (a === 'quick-add') openEventForm({mode:'add', wk:todayWeek(), d:activeDay(), title:b.dataset.text, dir:b.dataset.dir, item:b.dataset.item});
+  else if (a === 'ef-pick'){ const t = document.getElementById('ef-title'), h = document.getElementById('ef-item'); if (h) h.value = b.dataset.item || ''; if (t){ t.value = b.dataset.text; t.focus(); } }
+  else if (a === 'ef-del') deleteEvent();
+  else if (a === 'ef-reset') resetEvent();
+  else if (a === 'collapse') setCollapsed(!document.querySelector('.shell').classList.contains('is-collapsed'));
+  else if (a === 'bad') openBad();
+  else if (a === 'signout'){ if (window.firebase && firebase.apps.length) firebase.auth().signOut().then(() => location.reload()); }
+  else if (a === 'budget-edit'){ S.budgetEdit = true; render(); }
+  else if (a === 'budget-cancel'){ S.budgetEdit = false; render(); }
+  else if (a === 'close') closeDrawer();
+  else if (a === 'month') toggleIn('plan', 'month', b.dataset.i);
+  else if (a === 'bucket') toggleIn('plan', 'bucket', b.dataset.i);
+  else if (a === 'disc') toggleIn(b.dataset.wk, 'discover', b.dataset.i);
+  else if (a === 'hobby'){ const p = D('plan'); p.hobby = p.hobby === b.dataset.k ? null : b.dataset.k; save('plan'); render(); }
+  else if (a === 'it-did'){
+    const s = ensureSpheres().find(x => x.id === b.dataset.sp); if (!s) return;
+    const it = s.items.find(x => x.id === b.dataset.it); if (!it) return;
+    const t = iso(S.now); it.dates = it.dates || [];
+    const i = it.dates.indexOf(t);
+    if (i >= 0){ it.dates.splice(i, 1); histToggle(s.id, t, false); }
+    else { it.dates.push(t); it.dates.sort(); while (it.dates.length > 60) it.dates.shift(); histToggle(s.id, t, true); }
+    save('plan'); render();
+  }
+  else if (a === 'it-del'){
+    const s = ensureSpheres().find(x => x.id === b.dataset.sp); if (!s) return;
+    s.items = s.items.filter(x => x.id !== b.dataset.it); save('plan'); render();
+  }
+  else if (a === 'sp-hue'){
+    const s = ensureSpheres().find(x => x.id === b.dataset.sp); if (!s) return;
+    s.hue = HUES[(HUES.indexOf(s.hue) + 1) % HUES.length]; save('plan'); render();
+  }
+  else if (a === 'sp-del'){
+    const id = b.dataset.sp;
+    if (S.confirmDel === id){ const p = D('plan'); p.spheres = ensureSpheres().filter(x => x.id !== id); if (p.hist) delete p.hist[id]; S.confirmDel = null; save('plan'); }
+    else S.confirmDel = id;
+    render();
+  }
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.field && t.dataset.sp){
+    const s = ensureSpheres().find(x => x.id === t.dataset.sp); if (!s) return;
+    const target = t.dataset.it ? s.items.find(x => x.id === t.dataset.it) : s; if (!target) return;
+    const f = t.dataset.field;
+    if (f === 'name' || f === 'text'){ const v = t.value.trim(); if (!v){ t.value = target[f]; return; } target[f] = v; }
+    else if (f === 'every') target.every = +t.value;
+    save('plan'); render();
+  } else if (t.name === 'dir' && t.closest('form[data-form="event"]')){ const h = document.getElementById('ef-item'); if (h) h.value = ''; updateSuggest(); }
+});
+document.addEventListener('submit', e => {
+  const f = e.target.closest('form[data-form]'); if (!f) return;
+  e.preventDefault();
+  const k = f.dataset.form;
+  if (k === 'event') saveEventForm(f);
+  else if (k === 'item'){
+    const text = String(new FormData(f).get('text') || '').trim(); if (!text) return;
+    const s = ensureSpheres().find(x => x.id === f.dataset.sp); if (!s) return;
+    s.items.push({id:newId('i'), text, note:'', every:7, dates:[]}); save('plan'); render();
+  } else if (k === 'login'){
+    const err = document.getElementById('login-err'); err.textContent = '';
+    firebase.auth().signInWithEmailAndPassword(document.getElementById('login-email').value.trim(), document.getElementById('login-pass').value)
+      .catch(x => { err.textContent = x && x.code === 'auth/network-request-failed' ? 'Нет интернета. Проверь связь и попробуй ещё раз.' : 'Неверная почта или пароль.'; });
+  } else if (k === 'budget'){
+    const fd = new FormData(f), num = v => { const n = parseFloat(String(v || '').replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : 0; };
+    const total = num(fd.get('total')), err = document.getElementById('bud-err');
+    if (total <= 0){ err.textContent = 'Впиши свободный бюджет на месяц.'; err.hidden = false; return; }
+    const items = {}; BUDGET_CATS.forEach(c => { items[c.k] = num(fd.get(c.k)); });
+    D('plan').budget = {total, savings:num(fd.get('savings')), items}; S.budgetEdit = false; save('plan'); render();
+  } else if (k === 'sphere'){
+    const name = String(new FormData(f).get('name') || '').trim(); if (!name) return;
+    const list = ensureSpheres();
+    list.push({id:newId('s'), name, hue:HUES[list.length % HUES.length], icon:'star', every:7, items:[]}); save('plan'); render();
+  }
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !drawer.hidden) closeDrawer(); });
+document.addEventListener('focusout', () => setTimeout(() => { if (S.pendingRender && !typing()) render(); }, 0));
+function route(){ const h = location.hash.replace('#', ''); S.view = VIEWS[h] ? h : 'week'; S.confirmDel = null; render(); }
+window.addEventListener('hashchange', () => { route(); window.scrollTo(0, 0); });
+setInterval(() => {
+  const n = new Date();
+  if (n.getMinutes() !== S.now.getMinutes() || n.getDate() !== S.now.getDate()){
+    const dayChanged = !sameDay(n, S.now); S.now = n;
+    if (dayChanged) syncSubs();
+    if (dayChanged || S.view === 'week' || S.view === 'today') render({soft:true});
+  }
+}, 20000);
+
+function setCollapsed(on){
+  document.querySelector('.shell').classList.toggle('is-collapsed', on);
+  const b = document.getElementById('collapse'), label = on ? 'Развернуть меню' : 'Свернуть меню';
+  b.setAttribute('aria-label', label); b.title = label;
+  try { localStorage.setItem(LS + 'collapsed', on ? '1' : ''); } catch(e){}
+}
+
+/* ================= boot ================= */
+try { if (localStorage.getItem(LS + 'collapsed') === '1') setCollapsed(true); } catch(e){}
+route();
+/* Облако: тот же Firebase, что у бюджета; правила базы пускают только аккаунт Анны */
+const loginBox = document.getElementById('login');
+function bootCloud(){
+  if (!window.firebase || !window.FIREBASE_CONFIG){ setSync('local'); return; }
+  try { firebase.initializeApp(window.FIREBASE_CONFIG); } catch(e){ setSync('local'); return; }
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user){ loginBox.hidden = false; setSync('signedout'); return; }
+    loginBox.hidden = true;
+    if (store.mode === 'db') return;
+    store.db = firebase.firestore(); store.uid = user.uid; store.mode = 'db';
+    setSync('wait'); syncSubs();
+  });
+}
+bootCloud();
+</script>
+</body>
+</html>
