@@ -749,97 +749,104 @@ const BANDS = [
 ];
 
 /* Базовая неделя: каждый пункт из сфер Анны, без «или» и без бытового. Работа — из дома 8–17.
+   Дни собраны встык, без пауз. Еда короткая (20 мин), кроме обеда в будни 12–13 (он в сжатой работе).
+   Йога — ровно 20 минут (keep: календарь её не растягивает).
    item — пункт сферы; freq: 2w — раз в 2 недели, m1 — первая неделя месяца, m4 — последняя;
    from — с какой даты дело появляется (платное — с PAID_FROM); noteFrom — заметка видна с этой даты;
-   alt — дело-замена: стоит в календаре, только когда дела alt в эту неделю нет (платное ещё не началось,
-   неделя без тенниса/массажа/клуба, Анна его удалила) — чтобы в календаре не было пустых окон.
-   Дневник — минимум 45 минут. */
+   alt — дело-замена: стоит в календаре, только когда дела alt в эту неделю нет. Дневник — минимум 45 минут. */
 const EVENTS = [
   // Пн · Body
-  {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
-  {id:'mo-bf',   d:0,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
+  {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga',keep:1},
+  {id:'mo-bf',   d:0,t:'07:20–07:40',title:'Завтрак',dir:'meal'},
+  {id:'mo-am',   d:0,t:'07:40–08:00',title:'Новая музыка за кофе',note:'Один новый артист',dir:'brain',item:'newmusic'},
   {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',from:PAID_FROM},
-  {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
-  {id:'mo-pil-x',d:0,t:'18:00–19:00',title:'Документалка',dir:'brain',item:'docs',topic:1,alt:'mo-pil'},
-  {id:'mo-din',  d:0,t:'19:15–19:45',title:'Ужин',dir:'meal'},
+  {id:'mo-pil',  d:0,t:'17:00–18:00',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',from:PAID_FROM},
+  {id:'mo-walk', d:0,t:'18:00–18:45',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
+  {id:'mo-pil-x',d:0,t:'17:45–18:45',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles',alt:'mo-pil'},
+  {id:'mo-din',  d:0,t:'18:45–19:05',title:'Ужин',dir:'meal'},
+  {id:'mo-doc',  d:0,t:'19:05–20:00',title:'Документалка',dir:'brain',item:'docs',topic:1},
   {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',from:PAID_FROM},
   {id:'mo-eng-x',d:0,t:'20:00–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english',alt:'mo-eng'},
   {id:'mo-fic',  d:0,t:'21:00–21:45',title:'Фанфики',dir:'play',item:'fanfic'},
   {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
   // Вт · Brain
-  {id:'tu-bf',   d:1,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
-  {id:'tu-art',  d:1,t:'07:40–08:00',title:'Статья за кофе',dir:'brain',item:'articles'},
+  {id:'tu-bf',   d:1,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
+  {id:'tu-art',  d:1,t:'07:20–08:00',title:'Статья за кофе',note:'Интересное, а не лента',dir:'brain',item:'articles'},
   {id:'tu-lunch',d:1,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'tu-walk', d:1,t:'17:15–18:00',title:'Прогулка без цели',note:'Музыка в наушниках',dir:'body',item:'walk'},
-  {id:'tu-din',  d:1,t:'18:15–18:45',title:'Ужин',dir:'meal'},
-  {id:'tu-mb',   d:1,t:'19:00–20:00',title:'Музыкальная индустрия',dir:'brain',item:'industry',mb:1},
-  {id:'tu-music',d:1,t:'20:15–21:15',title:'Новая музыка',note:'3 маленьких артиста и 1 легенда',dir:'brain',item:'newmusic'},
+  {id:'tu-walk', d:1,t:'17:00–18:00',title:'Прогулка без цели',note:'Музыка в наушниках',dir:'body',item:'walk'},
+  {id:'tu-din',  d:1,t:'18:00–18:20',title:'Ужин',dir:'meal'},
+  {id:'tu-mb',   d:1,t:'18:20–19:30',title:'Музыкальная индустрия',dir:'brain',item:'industry',mb:1},
+  {id:'tu-music',d:1,t:'19:30–20:30',title:'Новая музыка',note:'3 маленьких артиста и 1 легенда',dir:'brain',item:'newmusic'},
+  {id:'tu-room', d:1,t:'20:30–21:30',title:'Pinterest и комната',note:'Идеи для своего уголка',dir:'play',item:'vibe'},
   {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books'},
 
   // Ср · Explore
-  {id:'we-yoga', d:2,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
-  {id:'we-bf',   d:2,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
+  {id:'we-yoga', d:2,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga',keep:1},
+  {id:'we-bf',   d:2,t:'07:20–07:40',title:'Завтрак',dir:'meal'},
+  {id:'we-am',   d:2,t:'07:40–08:00',title:'Статья за кофе',dir:'brain',item:'articles'},
   {id:'we-lunch',d:2,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'we-bud',  d:2,t:'17:30–18:45',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',from:PAID_FROM},
-  {id:'we-bud-x',d:2,t:'17:15–18:45',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',alt:'we-bud'},
-  {id:'we-din',  d:2,t:'19:00–19:30',title:'Ужин',dir:'meal'},
-  {id:'we-learn',d:2,t:'19:45–20:45',title:'Саморазвитие',dir:'brain',item:'learn',topic:1},
-  {id:'we-vibe', d:2,t:'20:45–21:45',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
+  {id:'we-bud',  d:2,t:'17:00–18:30',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',from:PAID_FROM},
+  {id:'we-bud-x',d:2,t:'17:00–18:30',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',alt:'we-bud'},
+  {id:'we-din',  d:2,t:'18:30–18:50',title:'Ужин',dir:'meal'},
+  {id:'we-learn',d:2,t:'18:50–20:00',title:'Саморазвитие',dir:'brain',item:'learn',topic:1},
+  {id:'we-vibe', d:2,t:'20:00–21:45',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
   {id:'we-diary',d:2,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
   // Чт · People + DIY
-  {id:'th-bf',   d:3,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
-  {id:'th-crit', d:3,t:'07:40–08:00',title:'Критическое мышление',note:'Разобрать один аргумент из новостей',dir:'brain',item:'critical'},
+  {id:'th-bf',   d:3,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
+  {id:'th-crit', d:3,t:'07:20–08:00',title:'Критическое мышление',note:'Разобрать один аргумент из новостей',dir:'brain',item:'critical'},
   {id:'th-lunch',d:3,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'th-walk', d:3,t:'17:15–18:00',title:'Прогулка без цели',note:'Подкаст в наушниках',dir:'body',item:'walk'},
-  {id:'th-din',  d:3,t:'18:00–18:30',title:'Ужин',dir:'meal'},
-  {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',from:PAID_FROM},
-  {id:'th-net-x1',d:3,t:'18:45–19:45',title:'Pinterest и комната',note:'Идеи для своего уголка',dir:'play',item:'vibe',alt:'th-net'},
-  {id:'th-net-x2',d:3,t:'20:00–20:45',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles',alt:'th-net'},
-  {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',hobby:1,from:PAID_FROM},
-  {id:'th-diy-x1',d:3,t:'21:00–21:45',title:'Книга',dir:'play',item:'books',alt:'th-diy'},
-  {id:'th-diy-x2',d:3,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',alt:'th-diy'},
+  {id:'th-walk', d:3,t:'17:00–18:00',title:'Прогулка без цели',note:'Подкаст в наушниках',dir:'body',item:'walk'},
+  {id:'th-din',  d:3,t:'18:00–18:20',title:'Ужин',dir:'meal'},
+  {id:'th-net',  d:3,t:'18:20–20:30',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',from:PAID_FROM},
+  {id:'th-net-x1',d:3,t:'18:20–19:30',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs',alt:'th-net'},
+  {id:'th-net-x2',d:3,t:'19:30–20:30',title:'Английский сам',note:'Подкаст на английском',dir:'brain',item:'english',alt:'th-net'},
+  {id:'th-diy',  d:3,t:'20:30–21:45',title:'DIY: хобби месяца',dir:'play',item:'diy',hobby:1,from:PAID_FROM},
+  {id:'th-diy-x',d:3,t:'20:30–21:45',title:'Книга',dir:'play',item:'books',alt:'th-diy'},
+  {id:'th-diary',d:3,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
   // Пт · Night out
-  {id:'fr-yoga', d:4,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
-  {id:'fr-bf',   d:4,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
+  {id:'fr-yoga', d:4,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga',keep:1},
+  {id:'fr-bf',   d:4,t:'07:20–07:40',title:'Завтрак',dir:'meal'},
+  {id:'fr-am',   d:4,t:'07:40–08:00',title:'Плейлист на выходные',dir:'brain',item:'newmusic'},
   {id:'fr-lunch',d:4,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'fr-walk', d:4,t:'17:15–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
-  {id:'fr-din',  d:4,t:'18:00–18:30',title:'Ужин',dir:'meal'},
-  {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',from:PAID_FROM},
-  {id:'fr-film-x',d:4,t:'18:45–20:45',title:'Фильм дома',note:'Из своего списка фильмов',dir:'play',item:'books',alt:'fr-film'},
-  {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',from:PAID_FROM},
-  {id:'fr-bar-x',d:4,t:'21:00–22:15',title:'Фанфики',note:'Уютный вечер',dir:'play',item:'fanfic',alt:'fr-bar'},
+  {id:'fr-walk', d:4,t:'17:00–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
+  {id:'fr-din',  d:4,t:'18:00–18:20',title:'Ужин',dir:'meal'},
+  {id:'fr-film', d:4,t:'18:20–20:30',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',from:PAID_FROM},
+  {id:'fr-film-x',d:4,t:'18:20–20:30',title:'Фильм дома',note:'Из своего списка фильмов',dir:'play',item:'books',alt:'fr-film'},
+  {id:'fr-bar',  d:4,t:'20:30–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',from:PAID_FROM},
+  {id:'fr-bar-x',d:4,t:'20:30–22:30',title:'Фанфики',note:'Уютный вечер',dir:'play',item:'fanfic',alt:'fr-bar'},
 
   // Сб · Budapest day
-  {id:'sa-bf',   d:5,t:'09:00–09:45',title:'Завтрак',dir:'meal'},
+  {id:'sa-bf',   d:5,t:'09:00–09:20',title:'Завтрак',dir:'meal'},
+  {id:'sa-art',  d:5,t:'09:20–10:00',title:'Журнал за кофе',note:'Длинная статья, а не лента',dir:'brain',item:'articles'},
   {id:'sa-eng',  d:5,t:'10:00–11:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',from:PAID_FROM},
   {id:'sa-eng-x',d:5,t:'10:00–11:00',title:'Английский сам',note:'Подкаст на английском',dir:'brain',item:'english',alt:'sa-eng'},
-  {id:'sa-art',  d:5,t:'11:15–12:00',title:'Журнал за кофе',note:'Длинная статья, а не лента',dir:'brain',item:'articles'},
-  {id:'sa-lunch',d:5,t:'12:00–13:00',title:'Обед',note:'в новом кафе',noteFrom:PAID_FROM,dir:'meal'},
-  {id:'sa-bud',  d:5,t:'13:00–15:30',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest'},
+  {id:'sa-music',d:5,t:'11:00–12:00',title:'Новая музыка',note:'Плейлист новых артистов недели',dir:'brain',item:'newmusic'},
+  {id:'sa-lunch',d:5,t:'12:00–12:20',title:'Обед',note:'в новом кафе',noteFrom:PAID_FROM,dir:'meal'},
+  {id:'sa-bud',  d:5,t:'12:20–16:00',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest'},
   {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',freq:'2w',par:0,from:PAID_FROM},
   {id:'sa-ten-x',d:5,t:'16:00–17:30',title:'Книга',note:'После прогулки, дома',dir:'play',item:'books',alt:'sa-ten'},
-  {id:'sa-music',d:5,t:'17:45–18:30',title:'Новая музыка',note:'Плейлист новых артистов недели',dir:'brain',item:'newmusic'},
-  {id:'sa-din',  d:5,t:'18:30–19:00',title:'Ужин',dir:'meal'},
-  {id:'sa-room', d:5,t:'19:00–20:45',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
+  {id:'sa-fic',  d:5,t:'17:30–18:30',title:'Фанфики',dir:'play',item:'fanfic'},
+  {id:'sa-din',  d:5,t:'18:30–18:50',title:'Ужин',dir:'meal'},
+  {id:'sa-room', d:5,t:'18:50–20:45',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
   {id:'sa-film', d:5,t:'20:45–22:30',title:'Фильм дома',dir:'play',item:'books'},
 
   // Вс · Reset day
-  {id:'su-bf',   d:6,t:'09:30–10:00',title:'Завтрак',dir:'meal'},
-  {id:'su-walk', d:6,t:'10:00–11:30',title:'Margaret Island',note:'Длинная прогулка',tag:'Reset day',dir:'body',item:'walk'},
-  {id:'su-lunch',d:6,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'su-doc',  d:6,t:'13:00–14:15',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
-  {id:'su-tg',   d:6,t:'14:30–15:45',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
+  {id:'su-bf',   d:6,t:'09:00–09:20',title:'Завтрак',dir:'meal'},
+  {id:'su-walk', d:6,t:'09:20–12:00',title:'Margaret Island',note:'Длинная прогулка',tag:'Reset day',dir:'body',item:'walk'},
+  {id:'su-lunch',d:6,t:'12:00–12:20',title:'Обед',dir:'meal'},
+  {id:'su-doc',  d:6,t:'12:20–13:30',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
+  {id:'su-tg',   d:6,t:'13:30–14:30',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
+  {id:'su-book', d:6,t:'14:30–16:00',title:'Книга',dir:'play',item:'books'},
   {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',freq:'m1',from:PAID_FROM},
   {id:'su-mass-x',d:6,t:'16:00–17:00',title:'Новая музыка: легенды',note:'Один альбом легенды целиком',dir:'brain',item:'newmusic',alt:'su-mass'},
   {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',freq:'m4',from:PAID_FROM},
-  {id:'su-club-x',d:6,t:'17:00–18:15',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,alt:'su-club'},
-  {id:'su-din',  d:6,t:'18:30–19:00',title:'Ужин',dir:'meal'},
-  {id:'su-book', d:6,t:'19:15–20:15',title:'Книга',dir:'play',item:'books'},
-  {id:'su-puz',  d:6,t:'20:30–21:30',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
+  {id:'su-club-x',d:6,t:'17:00–18:30',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,alt:'su-club'},
+  {id:'su-din',  d:6,t:'18:30–18:50',title:'Ужин',dir:'meal'},
+  {id:'su-puz',  d:6,t:'18:50–20:00',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
+  {id:'su-film', d:6,t:'20:00–21:45',title:'Фильм дома',dir:'play',item:'books'},
   {id:'su-diary',d:6,t:'21:45–22:30',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal'}
 ];
 
@@ -1144,7 +1151,7 @@ function eventsFor(mon){
     if (!prev || !isOut(prev) || prev.item === 'walk'){
       e.title = 'Прогулка без цели'; e.note = 'Подкаст в наушниках'; delete e.ret;
       // правило «17:00 → закрыла ноутбук → вышла»: в будни сдвинуть на 17:15, если время свободно и Анна его не меняла
-      const len = evRange(e)[1] - s0, a = WORK_TO + 15, b = a + len;
+      const len = evRange(e)[1] - s0, a = WORK_TO, b = a + len;
       const busy = list.some(x => x !== e && x.d === e.d && x.dir !== 'meal' && evRange(x)[0] < b && evRange(x)[1] > a);
       if (e.d < 5 && !e.edited && s0 > a && !busy) e.t = `${hm(a)}–${hm(b)}`;
     }
@@ -1154,25 +1161,35 @@ function eventsFor(mon){
   return list;
 }
 /* Расписание без дыр: утро 07:00–08:00 и вечер 17:00–22:30 в будни, 09:00–22:30 в выходные.
-   Пауза до 30 минут закрывается: предыдущее дело тянется до начала следующего, первое — встаёт к началу.
-   Время, которое Анна задала сама (timeSet), не трогаем */
+   Пауза до 45 минут закрывается так: тянется предыдущее дело (не еда); еда остаётся короткой и
+   переезжает вплотную к следующему делу; иначе следующее дело начинается раньше.
+   Не трогаем: время, заданное Анной (timeSet), и дела с keep (йога — ровно 20 минут) */
 function tighten(list){
+  const free = e => e && !e.timeSet && !e.keep;
+  const setT = (e, a, b) => { e.t = `${hm(a)}–${hm(b)}`; };
   for (let d = 0; d < 7; d++){
     const day = list.filter(e => e.d === d);
     const segs = d < 5 ? [[DAY_FROM, WORK_FROM], [WORK_TO, DAY_TO]] : [[WKND_FROM, DAY_TO]];
     for (const [a, b] of segs){
       const seg = day.filter(e => { const s0 = evRange(e)[0]; return s0 >= a && s0 < b; });
-      seg.forEach((e, i) => {
-        if (e.timeSet) return;
-        let [s0, e0] = evRange(e);
-        if (i === 0 && s0 > a && s0 - a <= 30) s0 = a;
-        const lim = i + 1 < seg.length ? evRange(seg[i + 1])[0] : b;
-        if (lim > e0 && lim - e0 <= 30) e0 = lim;
-        e.t = `${hm(s0)}–${hm(e0)}`;
-      });
+      for (let pass = 0; pass < 4; pass++){
+        seg.sort((x, y) => evRange(x)[0] - evRange(y)[0]);
+        let changed = false;
+        for (let i = 0; i <= seg.length; i++){
+          const prev = seg[i - 1], cur = seg[i];
+          const pEnd = prev ? evRange(prev)[1] : a, cStart = cur ? evRange(cur)[0] : b, gap = cStart - pEnd;
+          if (gap <= 0 || gap > 45) continue;
+          if (prev && prev.dir !== 'meal' && free(prev)){ setT(prev, evRange(prev)[0], cStart); changed = true; }
+          else if (prev && prev.dir === 'meal' && i > 1 && free(prev)){ setT(prev, evRange(prev)[0] + gap, evRange(prev)[1] + gap); changed = true; }
+          else if (cur && cur.dir !== 'meal' && free(cur)){ setT(cur, pEnd, evRange(cur)[1]); changed = true; }
+          else if (!prev && cur && cur.dir === 'meal' && free(cur)){ setT(cur, a, evRange(cur)[1] - gap); changed = true; }
+        }
+        if (!changed) break;
+      }
     }
   }
 }
+
 function bandOf(ev){
   const s = evRange(ev)[0];
   if (ev.d < 5){ if (s < WORK_FROM) return 'morning'; if (s < WORK_TO) return 'work'; if (s < 19*60) return 'after'; return 'evening'; }
@@ -1281,7 +1298,7 @@ function neglectHtml(limit){
 /* Календарь-шкала: карточка тянется ровно до своего времени.
    Будни: утро и вечер на честной шкале, работа сжата в две тонкие полосы вокруг обеда (как раньше).
    Выходные: весь день 07:00–22:30 на ровной шкале (в процентах высоты колонки). */
-const WD_SEGS = [[420, 480, 90], [480, 720, 40], [720, 780, 44], [780, 1020, 40], [1020, 1350, 495]]; // [с, до, высота px]
+const WD_SEGS = [[420, 480, 90], [480, 720, 40], [720, 780, 30], [780, 1020, 40], [1020, 1350, 495]]; // [с, до, высота px]
 const clampDay = m => Math.min(Math.max(m, DAY_FROM), DAY_TO);
 function yWD(m){
   m = clampDay(m); let y = 0;
