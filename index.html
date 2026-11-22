@@ -1311,7 +1311,7 @@ const freqText = ev => ev.once ? ' · разово' : ev.freq === '2w' ? ' · р
 const mealPill = (ev, wk, wide) =>
   `<button class="meal" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${wide ? ev.t + (ev.note ? ' · ' + esc(ev.note) : '') : ev.t.split('–')[0]}</span></button>`;
 const item = (ev, wk, w, mon, wide) => ev.dir === 'meal' ? mealPill(ev, wk, wide) : card(ev, wk, w, mon, wide);
-const strip = (a, b, long) => `<div class="work-strip">${icon('laptop')}<span>${long ? 'Работа ' : ''}${hm(a)}–${hm(b)}</span></div>`;
+const strip = (a, b, long) => `<div class="work-strip">${icon('laptop')}<span>${long ? 'Work · ' : ''}${hm(a)}–${hm(b)}</span></div>`;
 const checkRow = (on, attrs, text) =>
   `<button class="check ${on ? 'on' : ''}" ${attrs} aria-pressed="${on}"><span class="box">${icon('check')}</span><span class="check-t">${text}</span></button>`;
 const sleepBtn = (wk, w, d, label) =>
@@ -1408,8 +1408,8 @@ function vWeek(){
       ? [...Array(16)].map((_, i) => `<i class="hl" style="top:${pWE((7 + i) * 60)}%"></i>`).join('') +
         `<div class="bg-rest" style="top:0;height:calc(${pWE(WKND_FROM)}% - 3px)">${icon('sun')}<span>Утро без будильника</span></div>`
       : WD_TICKS.map(hr => `<i class="hl" style="top:${yWD(hr * 60)}px"></i>`).join('') +
-        `<div class="bg-work" style="top:${yWD(480)}px;height:${yWD(720) - yWD(480) - 3}px">${icon('laptop')}<span>Работа из дома · 08:00–12:00</span></div>` +
-        `<div class="bg-work" style="top:${yWD(780)}px;height:${yWD(1020) - yWD(780) - 3}px">${icon('laptop')}<span>Работа из дома · 13:00–17:00</span></div>`;
+        `<div class="bg-work" style="top:${yWD(480)}px;height:${yWD(720) - yWD(480) - 3}px">${icon('laptop')}<span>Work · 08:00–12:00</span></div>` +
+        `<div class="bg-work" style="top:${yWD(780)}px;height:${yWD(1020) - yWD(780) - 3}px">${icon('laptop')}<span>Work · 13:00–17:00</span></div>`;
     inner += items.map(e => block(e, wk, w, mon, lay)).join('');
     if (showNow) inner += `<i class="now-line${d === tIdx ? ' is-today' : ''}" style="top:${we ? pWE(nowM) + '%' : yWD(nowM) + 'px'}"></i>`;
     h += `<div class="wk-cell tg-col${we ? ' we' : ''} ${d===sel ? 'is-sel' : ''}"${we ? '' : ` style="height:${WD_H}px"`}>${inner}</div>`;
