@@ -200,6 +200,7 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .legend .chip-ic{width:22px;height:22px}
 .legend .chip-ic .ic{width:12px;height:12px}
 .legend .legend-t{color:var(--ink);font-weight:600}
+.legend .lg-fill{width:26px;height:16px;border-radius:5px;background:linear-gradient(90deg,var(--yellow) 0 50%,var(--card) 50% 100%);box-shadow:inset 0 0 0 1px var(--line-strong)}
 .daypills{display:none}
 
 /* ---------- generic panels ---------- */
@@ -717,12 +718,12 @@ const EVENTS = [
   {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'mo-bf',   d:0,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',fill:1,from:PAID_FROM},
+  {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',from:PAID_FROM},
   {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
   {id:'mo-pil-x',d:0,t:'18:00–19:00',title:'Документалка',dir:'brain',item:'docs',topic:1,alt:'mo-pil'},
   {id:'mo-din',  d:0,t:'19:15–19:45',title:'Ужин',dir:'meal'},
-  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',fill:1,from:PAID_FROM},
-  {id:'mo-eng-x',d:0,t:'20:00–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english',fill:1,alt:'mo-eng'},
+  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',from:PAID_FROM},
+  {id:'mo-eng-x',d:0,t:'20:00–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english',alt:'mo-eng'},
   {id:'mo-fic',  d:0,t:'21:00–21:45',title:'Фанфики',dir:'play',item:'fanfic'},
   {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
@@ -730,9 +731,9 @@ const EVENTS = [
   {id:'tu-bf',   d:1,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
   {id:'tu-art',  d:1,t:'07:40–08:00',title:'Статья за кофе',dir:'brain',item:'articles'},
   {id:'tu-lunch',d:1,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'tu-walk', d:1,t:'17:15–18:00',title:'Прогулка без цели',note:'40 минут, музыка в наушниках',dir:'body',item:'walk',fill:1},
+  {id:'tu-walk', d:1,t:'17:15–18:00',title:'Прогулка без цели',note:'Музыка в наушниках',dir:'body',item:'walk'},
   {id:'tu-din',  d:1,t:'18:15–18:45',title:'Ужин',dir:'meal'},
-  {id:'tu-mb',   d:1,t:'19:00–20:00',title:'Музыкальная индустрия',dir:'brain',item:'industry',fill:1,mb:1},
+  {id:'tu-mb',   d:1,t:'19:00–20:00',title:'Музыкальная индустрия',dir:'brain',item:'industry',mb:1},
   {id:'tu-music',d:1,t:'20:15–21:15',title:'Новая музыка',note:'3 маленьких артиста и 1 легенда',dir:'brain',item:'newmusic'},
   {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books'},
 
@@ -740,10 +741,10 @@ const EVENTS = [
   {id:'we-yoga', d:2,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'we-bf',   d:2,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'we-lunch',d:2,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'we-bud',  d:2,t:'17:30–18:45',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',fill:1,from:PAID_FROM},
-  {id:'we-bud-x',d:2,t:'17:15–18:45',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',fill:1,alt:'we-bud'},
+  {id:'we-bud',  d:2,t:'17:30–18:45',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',from:PAID_FROM},
+  {id:'we-bud-x',d:2,t:'17:15–18:45',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',alt:'we-bud'},
   {id:'we-din',  d:2,t:'19:00–19:30',title:'Ужин',dir:'meal'},
-  {id:'we-learn',d:2,t:'19:45–20:45',title:'Саморазвитие',dir:'brain',item:'learn',fill:1,topic:1},
+  {id:'we-learn',d:2,t:'19:45–20:45',title:'Саморазвитие',dir:'brain',item:'learn',topic:1},
   {id:'we-vibe', d:2,t:'20:45–21:45',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
   {id:'we-diary',d:2,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
@@ -751,12 +752,12 @@ const EVENTS = [
   {id:'th-bf',   d:3,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
   {id:'th-crit', d:3,t:'07:40–08:00',title:'Критическое мышление',note:'Разобрать один аргумент из новостей',dir:'brain',item:'critical'},
   {id:'th-lunch',d:3,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'th-walk', d:3,t:'17:15–18:00',title:'Прогулка без цели',dir:'body',item:'walk'},
+  {id:'th-walk', d:3,t:'17:15–18:00',title:'Прогулка без цели',note:'Подкаст в наушниках',dir:'body',item:'walk'},
   {id:'th-din',  d:3,t:'18:00–18:30',title:'Ужин',dir:'meal'},
-  {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',fill:1,from:PAID_FROM},
+  {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',from:PAID_FROM},
   {id:'th-net-x1',d:3,t:'18:45–19:45',title:'Pinterest и комната',note:'Идеи для своего уголка',dir:'play',item:'vibe',alt:'th-net'},
   {id:'th-net-x2',d:3,t:'20:00–20:45',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles',alt:'th-net'},
-  {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',fill:1,hobby:1,from:PAID_FROM},
+  {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',hobby:1,from:PAID_FROM},
   {id:'th-diy-x1',d:3,t:'21:00–21:45',title:'Книга',dir:'play',item:'books',alt:'th-diy'},
   {id:'th-diy-x2',d:3,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',alt:'th-diy'},
 
@@ -766,9 +767,9 @@ const EVENTS = [
   {id:'fr-lunch',d:4,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'fr-walk', d:4,t:'17:15–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
   {id:'fr-din',  d:4,t:'18:00–18:30',title:'Ужин',dir:'meal'},
-  {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',fill:1,from:PAID_FROM},
-  {id:'fr-film-x',d:4,t:'18:45–20:45',title:'Фильм дома',note:'Из своего списка фильмов',dir:'play',item:'books',fill:1,alt:'fr-film'},
-  {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',fill:1,from:PAID_FROM},
+  {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',from:PAID_FROM},
+  {id:'fr-film-x',d:4,t:'18:45–20:45',title:'Фильм дома',note:'Из своего списка фильмов',dir:'play',item:'books',alt:'fr-film'},
+  {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',from:PAID_FROM},
   {id:'fr-bar-x',d:4,t:'21:00–22:15',title:'Фанфики',note:'Уютный вечер',dir:'play',item:'fanfic',alt:'fr-bar'},
 
   // Сб · Budapest day
@@ -777,8 +778,8 @@ const EVENTS = [
   {id:'sa-eng-x',d:5,t:'10:00–11:00',title:'Английский сам',note:'Подкаст на английском',dir:'brain',item:'english',alt:'sa-eng'},
   {id:'sa-art',  d:5,t:'11:15–12:00',title:'Журнал за кофе',note:'Длинная статья, а не лента',dir:'brain',item:'articles'},
   {id:'sa-lunch',d:5,t:'12:00–13:00',title:'Обед',note:'в новом кафе',noteFrom:PAID_FROM,dir:'meal'},
-  {id:'sa-bud',  d:5,t:'13:00–15:30',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest',fill:1},
-  {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',fill:1,freq:'2w',par:0,from:PAID_FROM},
+  {id:'sa-bud',  d:5,t:'13:00–15:30',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest'},
+  {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',freq:'2w',par:0,from:PAID_FROM},
   {id:'sa-ten-x',d:5,t:'16:00–17:30',title:'Книга',note:'После прогулки, дома',dir:'play',item:'books',alt:'sa-ten'},
   {id:'sa-music',d:5,t:'17:45–18:30',title:'Новая музыка',note:'Плейлист новых артистов недели',dir:'brain',item:'newmusic'},
   {id:'sa-din',  d:5,t:'18:30–19:00',title:'Ужин',dir:'meal'},
@@ -787,13 +788,13 @@ const EVENTS = [
 
   // Вс · Reset day
   {id:'su-bf',   d:6,t:'09:30–10:00',title:'Завтрак',dir:'meal'},
-  {id:'su-walk', d:6,t:'10:00–11:30',title:'Margaret Island',note:'Длинная прогулка',tag:'Reset day',dir:'body',item:'walk',fill:1},
+  {id:'su-walk', d:6,t:'10:00–11:30',title:'Margaret Island',note:'Длинная прогулка',tag:'Reset day',dir:'body',item:'walk'},
   {id:'su-lunch',d:6,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'su-doc',  d:6,t:'13:00–14:15',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
   {id:'su-tg',   d:6,t:'14:30–15:45',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
-  {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',fill:1,freq:'m1',from:PAID_FROM},
+  {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',freq:'m1',from:PAID_FROM},
   {id:'su-mass-x',d:6,t:'16:00–17:00',title:'Новая музыка: легенды',note:'Один альбом легенды целиком',dir:'brain',item:'newmusic',alt:'su-mass'},
-  {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',fill:1,freq:'m4',from:PAID_FROM},
+  {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',freq:'m4',from:PAID_FROM},
   {id:'su-club-x',d:6,t:'17:00–18:15',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,alt:'su-club'},
   {id:'su-din',  d:6,t:'18:30–19:00',title:'Ужин',dir:'meal'},
   {id:'su-book', d:6,t:'19:15–20:15',title:'Книга',dir:'play',item:'books'},
@@ -1099,7 +1100,7 @@ function eventsFor(mon){
     const s0 = evRange(e)[0];
     const prev = list.filter(x => x.d === e.d && x !== e && x.dir !== 'meal' && evRange(x)[1] <= s0).sort((a, b) => evRange(b)[1] - evRange(a)[1])[0];
     if (!prev || !isOut(prev) || prev.item === 'walk'){
-      e.title = 'Прогулка без цели'; e.note = 'Выйти из дома сразу после работы. Подкаст в наушниках'; delete e.ret;
+      e.title = 'Прогулка без цели'; e.note = 'Подкаст в наушниках'; delete e.ret;
       // правило «17:00 → закрыла ноутбук → вышла»: в будни сдвинуть на 17:15, если время свободно и Анна его не меняла
       const len = evRange(e)[1] - s0, a = WORK_TO + 15, b = a + len;
       const busy = list.some(x => x !== e && x.d === e.d && x.dir !== 'meal' && evRange(x)[0] < b && evRange(x)[1] > a);
@@ -1170,7 +1171,7 @@ function card(ev, wk, w, mon, wide){
   if (ev.mb){ const i = mbIdx(mon); tag = `Неделя ${i+1} из 4`; note = `${MB[i][0]}: ${MB[i][1]}`; }
   if (ev.topic){ tag = 'Тема недели'; note = TOPICS[topicIdx(mon)]; }
   if (ev.hobby){ const hb = HOBBIES.find(x => x.k === D('plan').hobby); note = hb ? hb.t : 'Хобби месяца ещё не выбрано'; }
-  const cls = ['ev', ev.fill ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : ''].join(' ');
+  const cls = ['ev', isOut(ev) ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : ''].join(' ');
   const t = esc(ev.title);
   return `<article class="${cls}" data-act="edit" data-id="${ev.id}" data-wk="${wk}">
     <div class="ev-top"><span class="chip-ic hue-${sp.hue}" title="${esc(sp.name)}">${icon(sp.icon)}</span>
@@ -1241,7 +1242,7 @@ function vWeek(){
     const mine = evs.filter(e => e.dir === s.id);
     h += `<span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)} <em>${mine.filter(e => isDone(w, e.id)).length}/${mine.length}</em></span>`;
   }
-  h += `<span><span class="chip-ic hue-pink">${icon('door')}</span>кружок в шапке дня: вышла из дома вне работы</span></div>`;
+  h += `<span><span class="chip-ic hue-pink">${icon('door')}</span>кружок в шапке дня: вышла из дома вне работы</span><span><span class="lg-fill"></span>цветная карточка — дело вне дома, бежевая — дома</span></div>`;
 
   const plain = evs.filter(e => e.dir !== 'meal');
   const sub = [`Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки <b>${score(w)}/10</b>`, `Music Business: <b>${MB[mbIdx(mon)][0]}</b>`];
