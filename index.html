@@ -310,7 +310,8 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .sp-it-head{display:flex;align-items:center;gap:8px;min-width:0}
 .dotst{width:9px;height:9px;border-radius:50%;flex:none;background:var(--line-strong)}
 .dotst.st-ok{background:var(--good)} .dotst.st-soon{background:var(--yellow)} .dotst.st-late{background:var(--pink-ink)}
-.dotst.st-never{background:transparent;border:1.5px solid var(--line-strong);box-sizing:border-box}
+.dotst.st-never,.dotst.st-paused{background:transparent;border:1.5px solid var(--line-strong);box-sizing:border-box}
+.dotst.st-paused{border-style:dashed}
 .it-name{flex:1;min-width:0;font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:transparent;border:1.5px solid transparent;border-radius:8px;padding:3px 6px;margin-left:-4px}
 .it-name:hover{border-color:var(--line)}
 .it-name:focus{outline:none;border-color:var(--ink);background:var(--canvas)}
@@ -601,6 +602,10 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 <script>
 /* ================= data ================= */
 const START = new Date(2026, 10, 23); // пн, 23 ноября 2026 — старт первого месяца
+/* Платные дела (студия, преподаватель, корт, массаж, материалы, клуб, бары) — в календаре только с 1.12,
+   после зарплаты 26.11. Из сфер и базы они НЕ удаляются, просто их слоты до этой даты пустые */
+const PAID_FROM = '2026-12-01';
+const PAID_ITEMS = ['pilates','english','tennis','massage','diy','club','bars'];
 const DAYS = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -697,10 +702,10 @@ const EVENTS = [
   {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'mo-bf',   d:0,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',fill:1},
+  {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',fill:1,from:PAID_FROM},
   {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk'},
   {id:'mo-din',  d:0,t:'19:15–19:45',title:'Ужин',dir:'meal'},
-  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',fill:1},
+  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',fill:1,from:PAID_FROM},
   {id:'mo-fic',  d:0,t:'21:15–22:15',title:'Фанфики',dir:'play',item:'fanfic'},
   {id:'mo-diary',d:0,t:'22:15–22:30',title:'Дневник',note:'15 минут',dir:'play',item:'journal'},
 
@@ -729,7 +734,7 @@ const EVENTS = [
   {id:'th-walk', d:3,t:'17:15–18:00',title:'Прогулка без цели',dir:'body',item:'walk'},
   {id:'th-din',  d:3,t:'18:00–18:30',title:'Ужин',dir:'meal'},
   {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',fill:1},
-  {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',fill:1,hobby:1},
+  {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',fill:1,hobby:1,from:PAID_FROM},
 
   {id:'fr-yoga', d:4,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'fr-bf',   d:4,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
@@ -737,13 +742,13 @@ const EVENTS = [
   {id:'fr-walk', d:4,t:'17:15–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
   {id:'fr-din',  d:4,t:'18:00–18:30',title:'Ужин',dir:'meal'},
   {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',fill:1},
-  {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',fill:1},
+  {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',fill:1,from:PAID_FROM},
 
   {id:'sa-bf',   d:5,t:'09:00–09:45',title:'Завтрак',dir:'meal'},
-  {id:'sa-eng',  d:5,t:'10:00–11:00',title:'Английский',note:'Занятие',dir:'brain',item:'english'},
+  {id:'sa-eng',  d:5,t:'10:00–11:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',from:PAID_FROM},
   {id:'sa-lunch',d:5,t:'12:00–13:00',title:'Обед',note:'в новом кафе',dir:'meal'},
   {id:'sa-bud',  d:5,t:'13:00–15:30',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest',fill:1},
-  {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',fill:1,freq:'2w',par:0},
+  {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',fill:1,freq:'2w',par:0,from:PAID_FROM},
   {id:'sa-din',  d:5,t:'18:30–19:00',title:'Ужин',dir:'meal'},
   {id:'sa-room', d:5,t:'19:30–21:00',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
   {id:'sa-film', d:5,t:'21:00–22:30',title:'Фильм дома',dir:'play',item:'books'},
@@ -753,8 +758,8 @@ const EVENTS = [
   {id:'su-lunch',d:6,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'su-doc',  d:6,t:'13:30–14:30',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
   {id:'su-tg',   d:6,t:'14:45–15:45',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
-  {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',fill:1,freq:'m1'},
-  {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',fill:1,freq:'m4'},
+  {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',fill:1,freq:'m1',from:PAID_FROM},
+  {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',fill:1,freq:'m4',from:PAID_FROM},
   {id:'su-din',  d:6,t:'18:30–19:00',title:'Ужин',dir:'meal'},
   {id:'su-book', d:6,t:'19:15–20:15',title:'Книга',dir:'play',item:'books'},
   {id:'su-puz',  d:6,t:'20:30–21:15',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
@@ -1004,13 +1009,15 @@ function toggleItemDate(itemId, date, on){
   }
   return false;
 }
+const needsCare = x => x.st === 'soon' || x.st === 'late' || x.st === 'never';
 const statusOf = (ago, every) => ago === null ? 'never' : ago <= every ? 'ok' : ago <= every*2 ? 'soon' : 'late';
 function itemStats(){
   const today = iso(S.now), out = [];
   for (const s of spheresList()) for (const it of s.items){
     const d = (it.dates || []).filter(x => x <= today && x >= START_ISO);
     const last = d.length ? d[d.length-1] : null, ago = last ? daysBetween(last, today) : null, every = it.every || 7;
-    out.push({s, it, last, ago, every, st:statusOf(ago, every), ratio: ago === null ? 99 : ago / every});
+    const paused = PAID_ITEMS.includes(it.id) && today < PAID_FROM;
+    out.push({s, it, last, ago, every, st: paused ? 'paused' : statusOf(ago, every), ratio: paused ? -1 : ago === null ? 99 : ago / every});
   }
   return out;
 }
@@ -1019,7 +1026,7 @@ function sphereStats(){
   return spheresList().map(s => {
     const h = (hist[s.id] || []).filter(x => x <= today && x >= START_ISO);
     const mine = items.filter(x => x.s.id === s.id);
-    return {s, h, items:mine, c7:h.filter(x => daysBetween(x, today) < 7).length, behind:mine.filter(x => x.st !== 'ok').length};
+    return {s, h, items:mine, c7:h.filter(x => daysBetween(x, today) < 7).length, behind:mine.filter(needsCare).length};
   });
 }
 
@@ -1032,8 +1039,9 @@ function mergeEv(base, ed){
   return e;
 }
 function occurs(e, mon){
-  const f = e.freq || 'w'; if (f === 'w') return true;
   const date = addDays(mon, e.d);
+  if (e.from && iso(date) < e.from) return false;
+  const f = e.freq || 'w'; if (f === 'w') return true;
   if (f === '2w') return isoWeek(mon).w % 2 === (e.par || 0);
   if (f === 'm1') return date.getDate() <= 7;
   if (f === 'm4') return addDays(date, 7).getMonth() !== date.getMonth();
@@ -1131,7 +1139,7 @@ const swapsHtml = () => SWAPS.map(([a,b]) => `<div class="swap"><span>${a}</span
 function neglectHtml(limit){
   const items = itemStats();
   if (!items.some(x => x.last)) return `<p class="lead" style="margin:0">Пока нет отметок. Отмечай кружком сделанные дела, и здесь появятся пункты, до которых давно не доходили руки.</p>`;
-  const neg = items.filter(x => x.st !== 'ok').sort((a, b) => b.ratio - a.ratio).slice(0, limit);
+  const neg = items.filter(needsCare).sort((a, b) => b.ratio - a.ratio).slice(0, limit);
   if (!neg.length) return `<p class="lead" style="margin:0">Всё в норме. Хороший баланс.</p>`;
   return `<div class="neg">${neg.map(x => `<div class="neg-item"><span class="chip-ic hue-${x.s.hue}">${icon(x.s.icon)}</span>
       <span class="neg-t"><b>${esc(x.it.text)}</b><small>${esc(x.s.name)} · ${agoText(x.ago)}</small></span>
@@ -1181,7 +1189,7 @@ function vWeek(){
 
   const plain = evs.filter(e => e.dir !== 'meal');
   const sub = [`Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки <b>${score(w)}/10</b>`, `Music Business: <b>${MB[mbIdx(mon)][0]}</b>`];
-  const neg = itemStats().filter(x => x.last && x.st !== 'ok').sort((a, b) => b.ratio - a.ratio)[0];
+  const neg = itemStats().filter(x => x.last && needsCare(x)).sort((a, b) => b.ratio - a.ratio)[0];
   if (neg) sub.push(`Давно не было: <b>${esc(neg.it.text)}</b>, ${agoText(neg.ago)}`);
   const wi = weekIdx(mon);
   if (wi >= 0 && wi < 4) sub.push(`Месяц 1: <b>неделя ${wi+1} из 4</b>`);
@@ -1235,7 +1243,7 @@ function vSpheres(){
       return `<div class="sp-item">
         <div class="sp-it-head"><i class="dotst st-${y.st}"></i>
           <input class="it-name" id="itn-${it.id}" data-sp="${s.id}" data-it="${it.id}" data-field="text" value="${esc(it.text)}" aria-label="Название пункта" autocomplete="off">
-          <span class="it-ago">${agoText(y.ago)}</span></div>
+          <span class="it-ago">${y.st === 'paused' ? 'с 1 декабря' : agoText(y.ago)}</span></div>
         ${it.note ? `<p class="it-note">${esc(it.note)}</p>` : ''}
         <div class="sp-it-ctrl">
           <span class="sel"><select id="ie-${it.id}" data-sp="${s.id}" data-it="${it.id}" data-field="every" aria-label="Как часто: ${esc(it.text)}">${EVERY.map(n => `<option value="${n}" ${n === y.every ? 'selected' : ''}>${everyText(n)}</option>`).join('')}</select></span>
