@@ -227,7 +227,12 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .ev-check.sm .ic{width:10px;height:10px}
 .tg-col .ev--m .ev-top{margin-bottom:2px}
 .ev.is-now{box-shadow:inset 0 0 0 2px var(--pink-ink)}
-.meal--blk{border-radius:10px;padding:2px 8px;font-size:11px;background:var(--canvas)}
+.meal--blk{border-radius:10px;padding:2px 8px;font-size:11px;background:var(--canvas);overflow:hidden}
+/* короткая еда в узкой колонке: аккуратная тонкая плашка без пунктира */
+.meal--blk.meal--thin{border:0;border-radius:6px;background:var(--card);padding:0 8px;font-size:10.5px;line-height:1;gap:5px}
+.meal--thin .ic{width:12px;height:12px}
+.meal--thin b{margin-right:3px}
+.meal--thin:hover{box-shadow:inset 0 0 0 1px var(--line-strong)}
 .bg-work,.bg-rest{position:absolute;left:0;right:0;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 6px;font-size:11px;text-align:center;line-height:1.25;z-index:1}
 .bg-work{color:var(--muted);border:1px solid var(--line);background:repeating-linear-gradient(135deg,var(--canvas) 0 6px,var(--line) 6px 7px)}
 .bg-rest{color:var(--pink-ink);border:1.5px dashed var(--pink);background:var(--canvas);flex-direction:column}
@@ -1357,13 +1362,13 @@ function block(ev, wk, w, mon, lay){
   const horiz = `left:${L.lane * 100 / L.n}%;width:calc(${100 / L.n}% - ${L.n > 1 ? 4 : 0}px)`;
   let style, h;
   if (we){                           // выходные: в процентах; размер карточки — по меньшей (компьютерной) высоте
-    style = `top:${pWE(a)}%;height:calc(${(pWE(b) - pWE(a)).toFixed(3)}% - 3px);min-height:20px;${horiz}`;
+    style = `top:${pWE(a)}%;height:calc(${(pWE(b) - pWE(a)).toFixed(3)}% - ${ev.dir === 'meal' ? 1 : 3}px);${horiz}`;
     h = (clampDay(b) - clampDay(a)) * WD_H / (DAY_TO - DAY_FROM);
   } else {
     const top = yWD(a); h = Math.max(yWD(b) - top, 22);
     style = `top:${top}px;height:${h - 3}px;${horiz}`;
   }
-  if (ev.dir === 'meal') return `<button class="meal meal--blk" style="${style}" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} · ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${ev.t.split('–')[0]}</span></button>`;
+  if (ev.dir === 'meal') return `<button class="meal meal--blk${h < 26 ? ' meal--thin' : ''}" style="${style}" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} · ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${ev.t.split('–')[0]}</span></button>`;
   return card(ev, wk, w, mon, false, {style, h});
 }
 function vWeek(){
