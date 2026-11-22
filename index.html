@@ -203,6 +203,39 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .legend .lg-fill{width:26px;height:16px;border-radius:5px;background:linear-gradient(90deg,var(--yellow) 0 50%,var(--card) 50% 100%);box-shadow:inset 0 0 0 1px var(--line-strong)}
 .daypills{display:none}
 
+/* ---------- calendar timeline ---------- */
+.tg .wk-cell.tg-col{display:block;position:relative;border-radius:12px;
+  background-image:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px var(--hour))}
+.tg-axis{position:relative;min-width:0}
+.tg-axis span{position:absolute;right:10px;transform:translateY(-50%);font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tg-axis span:first-child{transform:none}
+.tg-axis .now-pill{right:4px;background:var(--pink);color:var(--on-accent);font-weight:600;padding:1px 7px;border-radius:999px;z-index:4}
+.tg-col .ev,.tg-col .meal--blk{position:absolute;z-index:1}
+.tg-col .ev{padding:8px 9px;gap:2px;border-radius:12px;overflow:hidden}
+.tg-col .ev.ev--s,.tg-col .ev.ev--xs{padding:5px 8px;border-radius:10px;justify-content:center}
+.ev-row{display:flex;align-items:center;gap:6px;min-width:0}
+.ev-row .ev-title{flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-row .ev-title button{white-space:nowrap}
+.ev--s .ev-time{margin:0;font-size:11px}
+.ev-time-in{flex:none;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ev.is-fill .ev-time-in{color:var(--on-accent);opacity:.72}
+.chip-ic.sm{width:18px;height:18px}
+.chip-ic.sm .ic{width:10px;height:10px}
+.ev-check.sm{width:18px;height:18px;border-width:1.5px}
+.ev-check.sm .ic{width:10px;height:10px}
+.tg-col .ev--m .ev-top{margin-bottom:2px}
+.ev.is-now{box-shadow:inset 0 0 0 2px var(--pink-ink)}
+.meal--blk{border-radius:10px;padding:2px 8px;font-size:11px;background:var(--canvas)}
+.bg-work,.bg-rest{position:absolute;left:0;right:0;border-radius:12px;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:12px;font-size:11px;text-align:center;line-height:1.35}
+.bg-work{color:var(--muted);border:1px solid var(--line);background:repeating-linear-gradient(135deg,var(--canvas) 0 6px,var(--line) 6px 7px)}
+.bg-rest{color:var(--pink-ink);border:1.5px dashed var(--pink);background:var(--canvas);justify-content:center;padding-top:0}
+.bg-work .ic,.bg-rest .ic{width:15px;height:15px}
+.now-line{position:absolute;left:-6px;right:0;height:0;border-top:1.5px dashed var(--pink-ink);z-index:3;pointer-events:none;opacity:.55}
+.now-line.is-today{opacity:1;border-top-style:solid}
+.tg-sleep-l{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding-right:10px;font-size:11px;font-variant-numeric:tabular-nums}
+.tg-sleep-l small{color:var(--muted);font-size:10.5px}
+@media (max-width:860px){ .tg .wk-cell.tg-col:not(.is-sel){display:none} }
+
 /* ---------- generic panels ---------- */
 .panel{background:var(--raise);border-radius:22px;padding:22px;min-width:0}
 .panel h2{margin:0 0 4px;font-size:19px;font-weight:600;letter-spacing:-.02em;text-wrap:balance}
@@ -619,6 +652,8 @@ const MONTHS_SHORT = ['янв','фев','мар','апр','мая','июн','и�
 const THEMES = ['Body','Brain','Explore','People + DIY','Night out','Budapest day','Reset day'];
 const themeOf = (d, mon) => (iso(addDays(mon, d)) < PAID_FROM && PRE_THEMES[d]) || THEMES[d];
 const WORK_FROM = 8*60, WORK_TO = 17*60, SLEEP_AT = 23*60;
+const DAY_FROM = 7*60, DAY_TO = 22*60 + 30, WKND_FROM = 9*60;   // видимый день: 07:00–22:30 (в 22:30 отбой)
+const PX = 1.5;                                                  // пикселей на минуту в календаре-шкале
 
 const IC = {
   week:'<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
@@ -1072,6 +1107,7 @@ function mergeEv(base, ed){
   const e = {...base, ...ed, edited:1};
   if (ed.title && ed.title !== base.title){ delete e.mb; delete e.topic; delete e.hobby; delete e.tag; delete e.ret; }
   if (ed.dir === 'meal') e.fill = 0;
+  if (ed.t && ed.t !== base.t) e.timeSet = 1;
   return e;
 }
 function occurs(e, mon){
@@ -1088,8 +1124,8 @@ function eventsFor(mon){
   const tE = tpl.edit || {}, tA = tpl.add || {}, wE = ov.edit || {}, wA = ov.add || {};
   const list = [], keep = e => { e.dir = dirOf(e.dir); if (!e.del && (e.once || occurs(e, mon))) list.push(e); };
   for (const b of EVENTS){ let e = mergeEv(b, tE[b.id]); e.origin = 'base'; if (wE[b.id]){ e = mergeEv(e, wE[b.id]); e.once = 1; } keep(e); }
-  for (const id in tA){ let e = {...tA[id], id, origin:'tpl'}; if (wE[id]){ e = mergeEv(e, wE[id]); e.once = 1; } keep(e); }
-  for (const id in wA) keep({...wA[id], id, origin:'week', once:1});
+  for (const id in tA){ let e = {...tA[id], id, origin:'tpl', timeSet:1}; if (wE[id]){ e = mergeEv(e, wE[id]); e.once = 1; } keep(e); }
+  for (const id in wA) keep({...wA[id], id, origin:'week', once:1, timeSet:1});
   list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
   // дела-замены: стоят в календаре, только когда основного дела в эту неделю нет — без пустых окон
   const have = new Set(list.filter(e => !e.alt).map(e => e.id));
@@ -1107,7 +1143,29 @@ function eventsFor(mon){
       if (e.d < 5 && !e.edited && s0 > a && !busy) e.t = `${hm(a)}–${hm(b)}`;
     }
   }
-  return list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
+  list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
+  tighten(list);
+  return list;
+}
+/* Расписание без дыр: утро 07:00–08:00 и вечер 17:00–22:30 в будни, 09:00–22:30 в выходные.
+   Пауза до 30 минут закрывается: предыдущее дело тянется до начала следующего, первое — встаёт к началу.
+   Время, которое Анна задала сама (timeSet), не трогаем */
+function tighten(list){
+  for (let d = 0; d < 7; d++){
+    const day = list.filter(e => e.d === d);
+    const segs = d < 5 ? [[DAY_FROM, WORK_FROM], [WORK_TO, DAY_TO]] : [[WKND_FROM, DAY_TO]];
+    for (const [a, b] of segs){
+      const seg = day.filter(e => { const s0 = evRange(e)[0]; return s0 >= a && s0 < b; });
+      seg.forEach((e, i) => {
+        if (e.timeSet) return;
+        let [s0, e0] = evRange(e);
+        if (i === 0 && s0 > a && s0 - a <= 30) s0 = a;
+        const lim = i + 1 < seg.length ? evRange(seg[i + 1])[0] : b;
+        if (lim > e0 && lim - e0 <= 30) e0 = lim;
+        e.t = `${hm(s0)}–${hm(e0)}`;
+      });
+    }
+  }
 }
 function bandOf(ev){
   const s = evRange(ev)[0];
@@ -1165,22 +1223,32 @@ function toggleIn(docName, field, key){
 }
 
 /* ================= pieces ================= */
-function card(ev, wk, w, mon, wide){
+function card(ev, wk, w, mon, wide, pos){
   const sp = sphereOf(ev.dir), done = isDone(w, ev.id), now = isNow(ev, mon);
   let tag = ev.tag || '', note = ev.note || '';
   if (ev.mb){ const i = mbIdx(mon); tag = `Неделя ${i+1} из 4`; note = `${MB[i][0]}: ${MB[i][1]}`; }
   if (ev.topic){ tag = 'Тема недели'; note = TOPICS[topicIdx(mon)]; }
   if (ev.hobby){ const hb = HOBBIES.find(x => x.k === D('plan').hobby); note = hb ? hb.t : 'Хобби месяца ещё не выбрано'; }
-  const cls = ['ev', isOut(ev) ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : ''].join(' ');
-  const t = esc(ev.title);
-  return `<article class="${cls}" data-act="edit" data-id="${ev.id}" data-wk="${wk}">
-    <div class="ev-top"><span class="chip-ic hue-${sp.hue}" title="${esc(sp.name)}">${icon(sp.icon)}</span>
-      <button class="ev-check" data-act="ev" data-id="${ev.id}" data-wk="${wk}" aria-pressed="${done}" aria-label="${done ? 'Снять отметку' : 'Отметить как сделанное'}: ${t}">${icon('check')}</button></div>
-    ${tag ? `<span class="ev-tag">${esc(tag)}</span>` : ''}
-    <h3 class="ev-title"><button data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${t}">${t}</button></h3>
-    ${note ? `<p class="ev-note">${esc(note)}</p>` : ''}
-    <p class="ev-time">${ev.t}${freqText(ev)}</p>
-    ${now ? `<span class="ev-now">Сейчас идёт…</span>` : ''}
+  const t = esc(ev.title), ids = `data-id="${ev.id}" data-wk="${wk}"`;
+  // в календаре-шкале размер карточки = длительность: xs — строка, s — название и время, m — полная карточка
+  const sz = pos ? (pos.h < 42 ? 'xs' : pos.h < 88 ? 's' : 'm') : '';
+  const small = sz === 'xs' || sz === 's';
+  const cls = ['ev', isOut(ev) ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : '', sz ? 'ev--' + sz : '', now ? 'is-now' : ''].join(' ');
+  const ic = `<span class="chip-ic${small ? ' sm' : ''} hue-${sp.hue}" title="${esc(sp.name)}">${icon(sp.icon)}</span>`;
+  const chk = `<button class="ev-check${small ? ' sm' : ''}" data-act="ev" ${ids} aria-pressed="${done}" aria-label="${done ? 'Снять отметку' : 'Отметить как сделанное'}: ${t}">${icon('check')}</button>`;
+  const ttl = `<h3 class="ev-title"><button data-act="edit" ${ids} aria-label="Изменить: ${t}">${t}</button></h3>`;
+  const time = `<p class="ev-time">${ev.t}${freqText(ev)}</p>`;
+  const attrs = `class="${cls}" data-act="edit" ${ids}${pos ? ` style="${pos.style}" title="${t} · ${ev.t}"` : ''}`;
+  if (sz === 'xs') return `<article ${attrs}><div class="ev-row">${ic}${ttl}<span class="ev-time-in">${ev.t.split('–')[0]}</span>${chk}</div></article>`;
+  if (sz === 's') return `<article ${attrs}><div class="ev-row">${ic}${ttl}${chk}</div>${time}</article>`;
+  const roomy = !pos || pos.h >= 125, roomier = !pos || pos.h >= 160;
+  return `<article ${attrs}>
+    <div class="ev-top">${ic}${chk}</div>
+    ${tag && roomier ? `<span class="ev-tag">${esc(tag)}</span>` : ''}
+    ${ttl}
+    ${note && roomy ? `<p class="ev-note">${esc(note)}</p>` : ''}
+    ${time}
+    ${now && !pos ? `<span class="ev-now">Сейчас идёт…</span>` : ''}
   </article>`;
 }
 const freqText = ev => ev.once ? ' · разово' : ev.freq === '2w' ? ' · раз в 2 недели' : (ev.freq === 'm1' || ev.freq === 'm4') ? ' · раз в месяц' : '';
@@ -1204,18 +1272,43 @@ function neglectHtml(limit){
 }
 
 /* ================= views ================= */
+/* Календарь-шкала: высота карточки = длительность дела */
+const ty = m => Math.round((Math.min(Math.max(m, DAY_FROM), DAY_TO) - DAY_FROM) * PX);
+function lanesOf(items){             // если дела пересекаются — ставим их рядом
+  const res = new Map(); let group = [], groupEnd = -1;
+  const flush = () => {
+    const ends = [];
+    group.forEach(e => { const [a, b] = evRange(e); let l = ends.findIndex(x => x <= a); if (l < 0){ l = ends.length; ends.push(b); } else ends[l] = b; res.set(e.id, {lane:l}); });
+    group.forEach(e => { res.get(e.id).n = ends.length; }); group = [];
+  };
+  [...items].sort((x, y) => evRange(x)[0] - evRange(y)[0]).forEach(e => {
+    const [a, b] = evRange(e);
+    if (group.length && a >= groupEnd){ flush(); groupEnd = -1; }
+    group.push(e); groupEnd = Math.max(groupEnd, b);
+  });
+  if (group.length) flush();
+  return res;
+}
+function block(ev, wk, w, mon, lay){
+  const [a, b] = evRange(ev), top = ty(a), h = Math.max(ty(b) - top, 22);
+  const L = lay.get(ev.id) || {lane:0, n:1};
+  const style = `top:${top}px;height:${h - 3}px;left:${L.lane * 100 / L.n}%;width:calc(${100 / L.n}% - ${L.n > 1 ? 4 : 0}px)`;
+  if (ev.dir === 'meal') return `<button class="meal meal--blk" style="${style}" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} · ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${ev.t.split('–')[0]}</span></button>`;
+  return card(ev, wk, w, mon, false, {style, h});
+}
 function vWeek(){
   const mon = curMonday(), wk = weekKey(mon), w = D(wk), evs = eventsFor(mon);
   const isCur = sameDay(mon, mondayOf(S.now)), tIdx = dayIdx(S.now);
   const sel = S.selDay ?? (isCur ? tIdx : 0);
-  const cb = isCur ? curBand(tIdx, S.now.getHours()*60 + S.now.getMinutes()) : null;
+  const nowM = S.now.getHours()*60 + S.now.getMinutes(), showNow = isCur && nowM >= DAY_FROM && nowM <= DAY_TO;
+  const H = ty(DAY_TO);
 
   let h = '<div class="daypills">';
   for (let d = 0; d < 7; d++){
     const dt = addDays(mon, d);
     h += `<button data-act="day" data-d="${d}" class="${d===sel ? 'on' : ''} ${isCur && d===tIdx ? 'is-today' : ''}" aria-pressed="${d===sel}">${DAYS_SHORT[d]}<b>${dt.getDate()}</b></button>`;
   }
-  h += '</div><div class="wk">';
+  h += `</div><div class="wk tg" style="--hour:${60 * PX}px">`;
   h += `<div class="wk-corner"><span>Нед</span><b>${isoWeek(mon).w}</b></div>`;
   for (let d = 0; d < 7; d++){
     const dt = addDays(mon, d), out = tickOn(w, 'out', d);
@@ -1223,20 +1316,22 @@ function vWeek(){
     h += `<div class="${cls}"><div class="wh-text"><div class="wh-top"><span class="wh-date">${dt.getDate()}</span><span class="wh-day">${DAYS_SHORT[d]}</span></div><span class="wh-theme">${themeOf(d, mon)}</span></div>
       <button class="out-dot ${out ? 'on' : ''}" data-act="tick" data-k="out" data-d="${d}" data-wk="${wk}" aria-pressed="${out}" aria-label="Вышла из дома вне работы, ${DAYS[d]}" title="Вышла из дома вне работы">${icon('door')}</button></div>`;
   }
-  for (const band of BANDS){
-    const here = cb === band.k;
-    h += `<div class="wk-axis ${here ? 'is-now' : ''}"><span class="ax-time">${here ? hm(S.now.getHours()*60 + S.now.getMinutes()) : band.time}</span><span class="ax-label">${band.label}</span></div>`;
-    for (let d = 0; d < 7; d++){
-      let inner = '';
-      const items = evs.filter(e => e.d === d && bandOf(e) === band.k);
-      if (band.k === 'sleep') inner = sleepBtn(wk, w, d, '23:00 · 8 ч сна');
-      else if (band.k === 'work'){
-        inner = d < 5 ? workSeq(items).map(x => x.strip ? strip(x.strip[0], x.strip[1]) : item(x.ev, wk, w, mon)).join('')
-                      : `<div class="free-strip">${icon('sun')}<span>выходной</span></div>`;
-      } else inner = items.map(e => item(e, wk, w, mon)).join('');
-      h += `<div class="wk-cell ${d===sel ? 'is-sel' : ''}">${inner}</div>`;
-    }
+  h += `<div class="tg-axis" style="height:${H}px">`;
+  for (let hr = 7; hr <= 22; hr++) h += `<span style="top:${ty(hr * 60)}px">${pad(hr)}:00</span>`;
+  if (showNow) h += `<span class="now-pill" style="top:${ty(nowM)}px">${hm(nowM)}</span>`;
+  h += '</div>';
+  for (let d = 0; d < 7; d++){
+    const items = evs.filter(e => e.d === d && evRange(e)[1] > DAY_FROM && evRange(e)[0] < DAY_TO);
+    const lay = lanesOf(items);
+    let inner = d < 5
+      ? `<div class="bg-work" style="top:${ty(WORK_FROM)}px;height:${ty(WORK_TO) - ty(WORK_FROM) - 3}px">${icon('laptop')}<span>Работа из дома<br>08:00–17:00</span></div>`
+      : `<div class="bg-rest" style="top:0;height:${ty(WKND_FROM) - 3}px">${icon('sun')}<span>Утро без будильника</span></div>`;
+    inner += items.map(e => block(e, wk, w, mon, lay)).join('');
+    if (showNow) inner += `<i class="now-line${d === tIdx ? ' is-today' : ''}" style="top:${ty(nowM)}px"></i>`;
+    h += `<div class="wk-cell tg-col ${d===sel ? 'is-sel' : ''}" style="height:${H}px">${inner}</div>`;
   }
+  h += `<div class="tg-sleep-l">23:00<small>сон</small></div>`;
+  for (let d = 0; d < 7; d++) h += `<div class="wk-cell ${d===sel ? 'is-sel' : ''}">${sleepBtn(wk, w, d, '8 ч сна')}</div>`;
   h += '</div><div class="legend"><span class="legend-t">Баланс недели</span>';
   for (const s of spheresList()){
     const mine = evs.filter(e => e.dir === s.id);
