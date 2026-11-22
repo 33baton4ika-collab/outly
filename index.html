@@ -608,12 +608,15 @@ const START = new Date(2026, 10, 23); // пн, 23 ноября 2026 — стар
 /* Платные дела (студия, преподаватель, корт, массаж, материалы, клуб, бары) — в календаре только с 1.12,
    после зарплаты 26.11. Из сфер и базы они НЕ удаляются, просто их слоты до этой даты пустые */
 const PAID_FROM = '2026-12-01';
-const PAID_ITEMS = ['pilates','english','tennis','massage','diy','club','bars'];
+const PAID_ITEMS = ['pilates','english','tennis','massage','diy','club','bars','culture','network'];
+/* Темы дней до 1.12, пока платного нет: четверг — домашний вечер, пятница — кино дома */
+const PRE_THEMES = {3:'Soul', 4:'Movie night'};
 const DAYS = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 const DAYS_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const MONTHS_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const MONTHS_SHORT = ['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 const THEMES = ['Body','Brain','Explore','People + DIY','Night out','Budapest day','Reset day'];
+const themeOf = (d, mon) => (iso(addDays(mon, d)) < PAID_FROM && PRE_THEMES[d]) || THEMES[d];
 const WORK_FROM = 8*60, WORK_TO = 17*60, SLEEP_AT = 23*60;
 
 const IC = {
@@ -703,19 +706,27 @@ const BANDS = [
   {k:'sleep',   time:'23:00', label:'Сон'}
 ];
 
-/* Базовая неделя: каждый пункт из сфер Анны, без «или» и без бытового.
-   item — пункт сферы; freq: 2w — раз в 2 недели, m1 — первая неделя месяца, m4 — последняя */
+/* Базовая неделя: каждый пункт из сфер Анны, без «или» и без бытового. Работа — из дома 8–17.
+   item — пункт сферы; freq: 2w — раз в 2 недели, m1 — первая неделя месяца, m4 — последняя;
+   from — с какой даты дело появляется (платное — с PAID_FROM); noteFrom — заметка видна с этой даты;
+   alt — дело-замена: стоит в календаре, только когда дела alt в эту неделю нет (платное ещё не началось,
+   неделя без тенниса/массажа/клуба, Анна его удалила) — чтобы в календаре не было пустых окон.
+   Дневник — минимум 45 минут. */
 const EVENTS = [
+  // Пн · Body
   {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'mo-bf',   d:0,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',fill:1,from:PAID_FROM},
   {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
+  {id:'mo-pil-x',d:0,t:'18:00–19:00',title:'Документалка',dir:'brain',item:'docs',topic:1,alt:'mo-pil'},
   {id:'mo-din',  d:0,t:'19:15–19:45',title:'Ужин',dir:'meal'},
-  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',fill:1,from:PAID_FROM},
-  {id:'mo-fic',  d:0,t:'21:15–22:15',title:'Фанфики',dir:'play',item:'fanfic'},
-  {id:'mo-diary',d:0,t:'22:15–22:30',title:'Дневник',note:'15 минут',dir:'play',item:'journal'},
+  {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',fill:1,from:PAID_FROM},
+  {id:'mo-eng-x',d:0,t:'20:00–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english',fill:1,alt:'mo-eng'},
+  {id:'mo-fic',  d:0,t:'21:00–21:45',title:'Фанфики',dir:'play',item:'fanfic'},
+  {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
+  // Вт · Brain
   {id:'tu-bf',   d:1,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
   {id:'tu-art',  d:1,t:'07:40–08:00',title:'Статья за кофе',dir:'brain',item:'articles'},
   {id:'tu-lunch',d:1,t:'12:00–13:00',title:'Обед',dir:'meal'},
@@ -725,52 +736,69 @@ const EVENTS = [
   {id:'tu-music',d:1,t:'20:15–21:15',title:'Новая музыка',note:'3 маленьких артиста и 1 легенда',dir:'brain',item:'newmusic'},
   {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books'},
 
+  // Ср · Explore
   {id:'we-yoga', d:2,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'we-bf',   d:2,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'we-lunch',d:2,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'we-bud',  d:2,t:'17:30–18:45',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',fill:1},
+  {id:'we-bud',  d:2,t:'17:30–18:45',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',fill:1,from:PAID_FROM},
+  {id:'we-bud-x',d:2,t:'17:15–18:45',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',fill:1,alt:'we-bud'},
   {id:'we-din',  d:2,t:'19:00–19:30',title:'Ужин',dir:'meal'},
   {id:'we-learn',d:2,t:'19:45–20:45',title:'Саморазвитие',dir:'brain',item:'learn',fill:1,topic:1},
-  {id:'we-puz',  d:2,t:'21:00–21:30',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles'},
-  {id:'we-vibe', d:2,t:'21:30–22:15',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
-  {id:'we-diary',d:2,t:'22:15–22:30',title:'Дневник',note:'15 минут',dir:'play',item:'journal'},
+  {id:'we-vibe', d:2,t:'20:45–21:45',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
+  {id:'we-diary',d:2,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
+  // Чт · People + DIY
   {id:'th-bf',   d:3,t:'07:15–07:40',title:'Завтрак',dir:'meal'},
   {id:'th-crit', d:3,t:'07:40–08:00',title:'Критическое мышление',note:'Разобрать один аргумент из новостей',dir:'brain',item:'critical'},
   {id:'th-lunch',d:3,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'th-walk', d:3,t:'17:15–18:00',title:'Прогулка без цели',dir:'body',item:'walk'},
   {id:'th-din',  d:3,t:'18:00–18:30',title:'Ужин',dir:'meal'},
-  {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',fill:1},
+  {id:'th-net',  d:3,t:'18:45–20:45',title:'Нетворкинг',note:'Митап, новые знакомства',dir:'people',item:'network',fill:1,from:PAID_FROM},
+  {id:'th-net-x1',d:3,t:'18:45–19:45',title:'Pinterest и комната',note:'Идеи для своего уголка',dir:'play',item:'vibe',alt:'th-net'},
+  {id:'th-net-x2',d:3,t:'20:00–20:45',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles',alt:'th-net'},
   {id:'th-diy',  d:3,t:'21:00–22:15',title:'DIY: хобби месяца',dir:'play',item:'diy',fill:1,hobby:1,from:PAID_FROM},
+  {id:'th-diy-x1',d:3,t:'21:00–21:45',title:'Книга',dir:'play',item:'books',alt:'th-diy'},
+  {id:'th-diy-x2',d:3,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',alt:'th-diy'},
 
+  // Пт · Night out
   {id:'fr-yoga', d:4,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga'},
   {id:'fr-bf',   d:4,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'fr-lunch',d:4,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'fr-walk', d:4,t:'17:15–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
   {id:'fr-din',  d:4,t:'18:00–18:30',title:'Ужин',dir:'meal'},
-  {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',fill:1},
+  {id:'fr-film', d:4,t:'18:45–20:45',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',fill:1,from:PAID_FROM},
+  {id:'fr-film-x',d:4,t:'18:45–20:45',title:'Фильм дома',note:'Из своего списка фильмов',dir:'play',item:'books',fill:1,alt:'fr-film'},
   {id:'fr-bar',  d:4,t:'21:00–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',fill:1,from:PAID_FROM},
+  {id:'fr-bar-x',d:4,t:'21:00–22:15',title:'Фанфики',note:'Уютный вечер',dir:'play',item:'fanfic',alt:'fr-bar'},
 
+  // Сб · Budapest day
   {id:'sa-bf',   d:5,t:'09:00–09:45',title:'Завтрак',dir:'meal'},
-  {id:'sa-eng',  d:5,t:'10:00–11:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',from:PAID_FROM},
-  {id:'sa-lunch',d:5,t:'12:00–13:00',title:'Обед',note:'в новом кафе',dir:'meal'},
+  {id:'sa-eng',  d:5,t:'10:00–11:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',from:PAID_FROM},
+  {id:'sa-eng-x',d:5,t:'10:00–11:00',title:'Английский сам',note:'Подкаст на английском',dir:'brain',item:'english',alt:'sa-eng'},
+  {id:'sa-art',  d:5,t:'11:15–12:00',title:'Журнал за кофе',note:'Длинная статья, а не лента',dir:'brain',item:'articles'},
+  {id:'sa-lunch',d:5,t:'12:00–13:00',title:'Обед',note:'в новом кафе',noteFrom:PAID_FROM,dir:'meal'},
   {id:'sa-bud',  d:5,t:'13:00–15:30',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest',fill:1},
   {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',fill:1,freq:'2w',par:0,from:PAID_FROM},
+  {id:'sa-ten-x',d:5,t:'16:00–17:30',title:'Книга',note:'После прогулки, дома',dir:'play',item:'books',alt:'sa-ten'},
+  {id:'sa-music',d:5,t:'17:45–18:30',title:'Новая музыка',note:'Плейлист новых артистов недели',dir:'brain',item:'newmusic'},
   {id:'sa-din',  d:5,t:'18:30–19:00',title:'Ужин',dir:'meal'},
-  {id:'sa-room', d:5,t:'19:30–21:00',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
-  {id:'sa-film', d:5,t:'21:00–22:30',title:'Фильм дома',dir:'play',item:'books'},
+  {id:'sa-room', d:5,t:'19:00–20:45',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
+  {id:'sa-film', d:5,t:'20:45–22:30',title:'Фильм дома',dir:'play',item:'books'},
 
+  // Вс · Reset day
   {id:'su-bf',   d:6,t:'09:30–10:00',title:'Завтрак',dir:'meal'},
   {id:'su-walk', d:6,t:'10:00–11:30',title:'Margaret Island',note:'Длинная прогулка',tag:'Reset day',dir:'body',item:'walk',fill:1},
   {id:'su-lunch',d:6,t:'12:00–13:00',title:'Обед',dir:'meal'},
-  {id:'su-doc',  d:6,t:'13:30–14:30',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
-  {id:'su-tg',   d:6,t:'14:45–15:45',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
+  {id:'su-doc',  d:6,t:'13:00–14:15',title:'Документалка',note:'По теме недели',dir:'brain',item:'docs'},
+  {id:'su-tg',   d:6,t:'14:30–15:45',title:'Пост в ТГ-канал',note:'Отзыв на книгу недели',dir:'play',item:'tg'},
   {id:'su-mass', d:6,t:'16:00–17:00',title:'Массаж',dir:'body',item:'massage',fill:1,freq:'m1',from:PAID_FROM},
+  {id:'su-mass-x',d:6,t:'16:00–17:00',title:'Новая музыка: легенды',note:'Один альбом легенды целиком',dir:'brain',item:'newmusic',alt:'su-mass'},
   {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',fill:1,freq:'m4',from:PAID_FROM},
+  {id:'su-club-x',d:6,t:'17:00–18:15',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,alt:'su-club'},
   {id:'su-din',  d:6,t:'18:30–19:00',title:'Ужин',dir:'meal'},
   {id:'su-book', d:6,t:'19:15–20:15',title:'Книга',dir:'play',item:'books'},
-  {id:'su-puz',  d:6,t:'20:30–21:15',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
-  {id:'su-diary',d:6,t:'21:15–21:30',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal'}
+  {id:'su-puz',  d:6,t:'20:30–21:30',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
+  {id:'su-diary',d:6,t:'21:45–22:30',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal'}
 ];
 
 const TRACK = [
@@ -1062,6 +1090,10 @@ function eventsFor(mon){
   for (const id in tA){ let e = {...tA[id], id, origin:'tpl'}; if (wE[id]){ e = mergeEv(e, wE[id]); e.once = 1; } keep(e); }
   for (const id in wA) keep({...wA[id], id, origin:'week', once:1});
   list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
+  // дела-замены: стоят в календаре, только когда основного дела в эту неделю нет — без пустых окон
+  const have = new Set(list.filter(e => !e.alt).map(e => e.id));
+  for (let i = list.length - 1; i >= 0; i--) if (list[i].alt && have.has(list[i].alt)) list.splice(i, 1);
+  for (const e of list) if (e.noteFrom && iso(addDays(mon, e.d)) < e.noteFrom) delete e.note;
   // «Прогулка домой» — только если перед ней было дело вне дома; после работы из дома это обычная прогулка
   for (const e of list) if (e.ret){
     const s0 = evRange(e)[0];
@@ -1074,7 +1106,7 @@ function eventsFor(mon){
       if (e.d < 5 && !e.edited && s0 > a && !busy) e.t = `${hm(a)}–${hm(b)}`;
     }
   }
-  return list;
+  return list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
 }
 function bandOf(ev){
   const s = evRange(ev)[0];
@@ -1187,7 +1219,7 @@ function vWeek(){
   for (let d = 0; d < 7; d++){
     const dt = addDays(mon, d), out = tickOn(w, 'out', d);
     const cls = ['wk-head', isCur && d===tIdx ? 'is-today' : '', d >= 5 ? 'is-wkend' : '', d===sel ? 'is-sel' : ''].join(' ');
-    h += `<div class="${cls}"><div class="wh-text"><div class="wh-top"><span class="wh-date">${dt.getDate()}</span><span class="wh-day">${DAYS_SHORT[d]}</span></div><span class="wh-theme">${THEMES[d]}</span></div>
+    h += `<div class="${cls}"><div class="wh-text"><div class="wh-top"><span class="wh-date">${dt.getDate()}</span><span class="wh-day">${DAYS_SHORT[d]}</span></div><span class="wh-theme">${themeOf(d, mon)}</span></div>
       <button class="out-dot ${out ? 'on' : ''}" data-act="tick" data-k="out" data-d="${d}" data-wk="${wk}" aria-pressed="${out}" aria-label="Вышла из дома вне работы, ${DAYS[d]}" title="Вышла из дома вне работы">${icon('door')}</button></div>`;
   }
   for (const band of BANDS){
@@ -1239,14 +1271,14 @@ function vToday(){
   }).join('');
   const plain = evs.filter(e => e.dir !== 'meal');
   const html = `<div class="today">
-    <section class="panel"><p class="eyebrow">${pre ? 'Первый день' : 'План на день'} · ${THEMES[d]}</p><p class="lead">${pre ? 'Так будет выглядеть понедельник. Любое дело можно заменить заранее: нажми на него.' : 'Нажми на дело, чтобы заменить его на другое или поменять время.'}</p><div class="tl">${rows}</div></section>
+    <section class="panel"><p class="eyebrow">${pre ? 'Первый день' : 'План на день'} · ${themeOf(d, mon)}</p><p class="lead">${pre ? 'Так будет выглядеть понедельник. Любое дело можно заменить заранее: нажми на него.' : 'Нажми на дело, чтобы заменить его на другое или поменять время.'}</p><div class="tl">${rows}</div></section>
     <div class="stack-v">
       <section class="panel"><p class="eyebrow">Давно не было</p><h2>До чего давно не доходили руки</h2><p class="lead">«В план» ставит пункт в сегодняшний день.</p>${neglectHtml(4)}</section>
       ${pre ? '' : `<section class="panel"><h2>Отметь за сегодня</h2><p class="lead">Отметки попадают в привычки недели. Сделанные дела в плане отмечают их сами.</p><div class="tchips">${chips}</div></section>`}
       <section class="panel"><p class="eyebrow">Если день не идёт</p>${swapsHtml()}</section>
     </div></div>`;
-  if (pre){ const n = daysBetween(iso(S.now), START_ISO); return {title:'Старт в понедельник, 23 ноября', sub:[`До старта: <b>${n} ${plural(n,'день','дня','дней')}</b>`, `Тема первого дня: <b>${THEMES[0]}</b>`], html}; }
-  return {title:`${DAYS[d]}, ${S.now.getDate()} ${MONTHS_GEN[S.now.getMonth()]}`, sub:[`Тема дня: <b>${THEMES[d]}</b>`, `Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки недели <b>${score(w)}/10</b>`], html};
+  if (pre){ const n = daysBetween(iso(S.now), START_ISO); return {title:'Старт в понедельник, 23 ноября', sub:[`До старта: <b>${n} ${plural(n,'день','дня','дней')}</b>`, `Тема первого дня: <b>${themeOf(0, mon)}</b>`], html}; }
+  return {title:`${DAYS[d]}, ${S.now.getDate()} ${MONTHS_GEN[S.now.getMonth()]}`, sub:[`Тема дня: <b>${themeOf(d, mon)}</b>`, `Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки недели <b>${score(w)}/10</b>`], html};
 }
 
 function vSpheres(){
