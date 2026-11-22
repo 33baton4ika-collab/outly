@@ -438,6 +438,9 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .ef-actions{display:flex;gap:10px;flex-wrap:wrap}
 .ef-more{display:flex;justify-content:space-between;gap:12px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
 .ef-err{color:var(--pink-ink);font-size:13px}
+.chk{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;flex-wrap:wrap}
+.chk input{width:18px;height:18px;margin:0;accent-color:var(--pink-ink)}
+.chk small{color:var(--muted);font-size:12px}
 
 /* ---------- login & budget form ---------- */
 .login{position:fixed;inset:0;z-index:60;background:var(--ground);display:grid;place-items:center;overflow:auto;
@@ -682,6 +685,10 @@ const ITEM_TRACK = {yoga:['sport'], pilates:['sport','out'], walk:['walk','out']
   learn:['learn'], articles:['read'], docs:['learn'], critical:['learn'], industry:['learn'], newmusic:['music'], english:['learn'],
   books:['read'], fanfic:['read'], diy:['hobby'], budapest:['walk','out','newplace'], vibe:[], culture:['out','newplace'], puzzles:[], journal:[], tg:[],
   bars:['friends','out'], network:['friends','out'], club:['friends','read']};
+/* Анна работает из дома. Дела вне дома: студия, корт, массаж, прогулки, город, кино, бары, люди.
+   У дела можно явно поставить out: 1/0 (галочка «Вне дома» в форме), иначе — по пункту сферы */
+const OUT_ITEMS = ['pilates','tennis','massage','walk','budapest','culture','bars','network'];
+const isOut = ev => ev.out !== undefined ? !!ev.out : OUT_ITEMS.includes(ev.item);
 const SPHERE_TRACK = {body:['sport'], brain:['learn'], play:[], people:['friends','out']};
 const MEAL = {id:'meal', name:'Еда', hue:'card', icon:'fork', items:[{text:'Завтрак'},{text:'Обед'},{text:'Ужин'},{text:'Перекус'}]};
 const NO_SPHERE = {id:'none', name:'Без сферы', hue:'sage', icon:'star', every:7, items:[]};
@@ -703,7 +710,7 @@ const EVENTS = [
   {id:'mo-bf',   d:0,t:'07:20–07:45',title:'Завтрак',dir:'meal'},
   {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'mo-pil',  d:0,t:'17:15–18:15',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',fill:1,from:PAID_FROM},
-  {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk'},
+  {id:'mo-walk', d:0,t:'18:15–19:00',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
   {id:'mo-din',  d:0,t:'19:15–19:45',title:'Ужин',dir:'meal'},
   {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие',dir:'brain',item:'english',fill:1,from:PAID_FROM},
   {id:'mo-fic',  d:0,t:'21:15–22:15',title:'Фанфики',dir:'play',item:'fanfic'},
@@ -1034,7 +1041,7 @@ function sphereStats(){
 function mergeEv(base, ed){
   if (!ed) return {...base};
   const e = {...base, ...ed, edited:1};
-  if (ed.title && ed.title !== base.title){ delete e.mb; delete e.topic; delete e.hobby; delete e.tag; }
+  if (ed.title && ed.title !== base.title){ delete e.mb; delete e.topic; delete e.hobby; delete e.tag; delete e.ret; }
   if (ed.dir === 'meal') e.fill = 0;
   return e;
 }
@@ -1054,7 +1061,20 @@ function eventsFor(mon){
   for (const b of EVENTS){ let e = mergeEv(b, tE[b.id]); e.origin = 'base'; if (wE[b.id]){ e = mergeEv(e, wE[b.id]); e.once = 1; } keep(e); }
   for (const id in tA){ let e = {...tA[id], id, origin:'tpl'}; if (wE[id]){ e = mergeEv(e, wE[id]); e.once = 1; } keep(e); }
   for (const id in wA) keep({...wA[id], id, origin:'week', once:1});
-  return list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
+  list.sort((a, b) => evRange(a)[0] - evRange(b)[0]);
+  // «Прогулка домой» — только если перед ней было дело вне дома; после работы из дома это обычная прогулка
+  for (const e of list) if (e.ret){
+    const s0 = evRange(e)[0];
+    const prev = list.filter(x => x.d === e.d && x !== e && x.dir !== 'meal' && evRange(x)[1] <= s0).sort((a, b) => evRange(b)[1] - evRange(a)[1])[0];
+    if (!prev || !isOut(prev) || prev.item === 'walk'){
+      e.title = 'Прогулка без цели'; e.note = 'Выйти из дома сразу после работы. Подкаст в наушниках'; delete e.ret;
+      // правило «17:00 → закрыла ноутбук → вышла»: в будни сдвинуть на 17:15, если время свободно и Анна его не меняла
+      const len = evRange(e)[1] - s0, a = WORK_TO + 15, b = a + len;
+      const busy = list.some(x => x !== e && x.d === e.d && x.dir !== 'meal' && evRange(x)[0] < b && evRange(x)[1] > a);
+      if (e.d < 5 && !e.edited && s0 > a && !busy) e.t = `${hm(a)}–${hm(b)}`;
+    }
+  }
+  return list;
 }
 function bandOf(ev){
   const s = evRange(ev)[0];
@@ -1089,7 +1109,11 @@ function counts(w){ const r = {}; TRACK.forEach(t => { r[t.k] = [0,1,2,3,4,5,6].
 function score(w){ const c = counts(w); return TRACK.filter(t => c[t.k] >= t.target).length; }
 const isDone = (w, id) => !!(w.done && w.done[id]);
 
-const trackOf = ev => ITEM_TRACK[ev.item] || SPHERE_TRACK[ev.dir] || [];
+const trackOf = ev => {
+  const t = (ITEM_TRACK[ev.item] || SPHERE_TRACK[ev.dir] || []).filter(k => k !== 'out');
+  if (isOut(ev)) t.push('out');
+  return t;
+};
 function toggleEvent(wk, id){
   const mon = mondayFromKey(wk), ev = eventsFor(mon).find(e => e.id === id);
   if (!ev || ev.dir === 'meal') return;
@@ -1444,6 +1468,7 @@ function openEventForm(o){
   const d = ev ? ev.d : (o.d ?? 0), date = addDays(mon, d);
   const sph = spheresList();
   const cur = {title: ev ? ev.title : (o.title || ''), dir: ev ? ev.dir : (o.dir || (sph[0] ? sph[0].id : 'meal')), note: ev ? (ev.note || '') : '', t: ev ? ev.t : defaultTime(d, mon), item: ev ? (ev.item || '') : (o.item || '')};
+  cur.out = ev ? isOut(ev) : OUT_ITEMS.includes(cur.item);
   const [from, to] = cur.t.split('–');
   S.edit = {mode:o.mode, wk:o.wk, id:o.id, origin: ev ? ev.origin : null, d};
   const dirOpts = sph.concat([MEAL]).map(s => `<label class="opt"><input type="radio" name="dir" value="${s.id}" ${s.id === cur.dir ? 'checked' : ''}><span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)}</span></label>`).join('');
@@ -1465,6 +1490,7 @@ function openEventForm(o){
     ${dayOpts}
     <div class="fl-row"><label class="fl"><span class="fl-label">Начало</span><input type="time" id="ef-from" name="from" value="${from}" step="300"></label>
       <label class="fl"><span class="fl-label">Конец</span><input type="time" id="ef-to" name="to" value="${to}" step="300"></label></div>
+    <label class="chk"><input type="checkbox" name="out" id="ef-out" ${cur.out ? 'checked' : ''}><span>Вне дома</span><small>студия, кафе, бар, город</small></label>
     <label class="fl"><span class="fl-label">Заметка</span><input id="ef-note" name="note" value="${esc(cur.note)}" placeholder="Необязательно" autocomplete="off"></label>
     ${scope}
     <p class="ef-err" id="ef-err" hidden></p>
@@ -1494,7 +1520,7 @@ function saveEventForm(f){
   const from = String(fd.get('from') || '') || '18:00';
   let to = String(fd.get('to') || '');
   if (!to || mins(to) <= mins(from)) to = hm(Math.min(mins(from) + 30, 23*60 + 55));
-  const obj = {title, t:`${from}–${to}`, dir:String(fd.get('dir') || 'none'), note:String(fd.get('note') || '').trim(), item:String(fd.get('item') || '')};
+  const obj = {title, t:`${from}–${to}`, dir:String(fd.get('dir') || 'none'), note:String(fd.get('note') || '').trim(), item:String(fd.get('item') || ''), out: fd.get('out') ? 1 : 0};
   const scope = formScope(), repeat = scope === 'once' ? null : {freq:scope, par:isoWeek(mondayFromKey(E.wk)).w % 2};
   if (E.mode === 'add'){
     const d = fd.get('day') !== null ? +fd.get('day') : E.d, id = newId('u');
@@ -1591,7 +1617,7 @@ document.addEventListener('click', e => {
     openEventForm({mode:'add', wk:weekKey(mon), d});
   }
   else if (a === 'quick-add') openEventForm({mode:'add', wk:todayWeek(), d:activeDay(), title:b.dataset.text, dir:b.dataset.dir, item:b.dataset.item});
-  else if (a === 'ef-pick'){ const t = document.getElementById('ef-title'), h = document.getElementById('ef-item'); if (h) h.value = b.dataset.item || ''; if (t){ t.value = b.dataset.text; t.focus(); } }
+  else if (a === 'ef-pick'){ const t = document.getElementById('ef-title'), h = document.getElementById('ef-item'); if (h) h.value = b.dataset.item || ''; const oc = document.getElementById('ef-out'); if (oc && b.dataset.item) oc.checked = OUT_ITEMS.includes(b.dataset.item); if (t){ t.value = b.dataset.text; t.focus(); } }
   else if (a === 'ef-del') deleteEvent();
   else if (a === 'ef-reset') resetEvent();
   else if (a === 'collapse') setCollapsed(!document.querySelector('.shell').classList.contains('is-collapsed'));
