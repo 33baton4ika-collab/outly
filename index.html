@@ -568,7 +568,16 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 }
 
 /* ---------- телефон: вид как на компьютере, но без пустых полей по краям ---------- */
-@media (pointer:coarse){ .fl input,.login input,.add-row input{font-size:16px} }
+.ffbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--raise);border-radius:14px;padding:8px 10px;margin-bottom:12px;font-size:13px}
+.ffbar b{font-weight:600}
+.ffbar.on{background:var(--pink);color:var(--on-accent)}
+.ffbar.on .chip-ic{background:var(--veil)}
+.ffbar .ff-input{flex:1 1 180px;min-width:0;font:inherit;font-size:13px;color:var(--on-accent);background:var(--veil);border:1.5px solid transparent;border-radius:999px;padding:6px 12px}
+.ffbar .ff-input::placeholder{color:var(--on-accent);opacity:.6}
+.ffbar .ff-input:focus{outline:none;border-color:var(--on-accent)}
+.ffbar.on .mini{color:var(--on-accent);border-color:rgba(22,21,19,.35)}
+.ffbar > span:not(.chip-ic){flex:1 1 200px;min-width:0}
+@media (pointer:coarse){ .fl input,.login input,.add-row input,.ffbar .ff-input{font-size:16px} }
 @media (max-width:700px){
   body{padding-block:6px;padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
   .shell{padding:8px 8px 18px;border-radius:24px;gap:16px}
@@ -711,7 +720,7 @@ const DEFAULT_SPHERES = [
     {id:'english',  text:'Английский', note:'Вернуться на занятия', every:4}]},
   {id:'play', name:'Soul', hue:'pink', icon:'spark', items:[
     {id:'books',    text:'Книги и фильмы', note:'', every:2},
-    {id:'fanfic',   text:'Фанфики', note:'', every:4},
+    {id:'fanfic',   text:'Фанфики', note:'Волной: один фанфик на неделю, потом 2 недели перерыв', every:21},
     {id:'diy',      text:'DIY', note:'Любое своими руками', every:7},
     {id:'budapest', text:'Узнавать Будапешт', note:'Кафешки и места, чтобы было что показать гостям. Кроме парламента', every:7},
     {id:'vibe',     text:'Вайбкодинг, Pinterest, комната', note:'Свои проекты и обустройство', every:4},
@@ -753,7 +762,8 @@ const BANDS = [
    Йога — 07:00–07:40, полной карточкой (keep: календарь её не растягивает).
    item — пункт сферы; freq: 2w — раз в 2 недели, m1 — первая неделя месяца, m4 — последняя;
    from — с какой даты дело появляется (платное — с PAID_FROM); noteFrom — заметка видна с этой даты;
-   alt — дело-замена: стоит в календаре, только когда дела alt в эту неделю нет. Дневник — минимум 45 минут. */
+   alt — дело-замена: стоит в календаре, только когда дела alt в эту неделю нет. Дневник — минимум 45 минут.
+   ff:1 — только в фанфик-неделю (фанфик волной: ~2 часа перед сном пн/вт/ср/вс, дневник раньше), ff:0 — только в обычную. */
 const EVENTS = [
   // Пн · Body
   {id:'mo-yoga', d:0,t:'07:00–07:40',title:'Йога',note:'Дома',dir:'body',item:'yoga',keep:1},
@@ -763,11 +773,13 @@ const EVENTS = [
   {id:'mo-walk', d:0,t:'18:00–18:45',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
   {id:'mo-pil-x',d:0,t:'17:45–18:45',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles',alt:'mo-pil'},
   {id:'mo-din',  d:0,t:'18:45–19:05',title:'Ужин',dir:'meal'},
-  {id:'mo-doc',  d:0,t:'19:05–20:00',title:'Документалка',dir:'brain',item:'docs',topic:1},
+  {id:'mo-doc',  d:0,t:'19:05–20:00',title:'Документалка',dir:'brain',item:'docs',topic:1,ff:0},
+  {id:'mo-ffdiary',d:0,t:'19:05–20:00',title:'Дневник',dir:'play',item:'journal',ff:1},
   {id:'mo-eng',  d:0,t:'20:00–21:00',title:'Английский',note:'Занятие с преподавателем',dir:'brain',item:'english',from:PAID_FROM},
   {id:'mo-eng-x',d:0,t:'20:00–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english',alt:'mo-eng'},
-  {id:'mo-fic',  d:0,t:'21:00–21:45',title:'Фанфики',dir:'play',item:'fanfic'},
-  {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
+  {id:'mo-book', d:0,t:'21:00–21:45',title:'Книга',dir:'play',item:'books',ff:0},
+  {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',ff:0},
+  {id:'mo-ff',   d:0,t:'21:00–22:30',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
 
   // Вт · Brain
   {id:'tu-bf',   d:1,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
@@ -777,8 +789,9 @@ const EVENTS = [
   {id:'tu-din',  d:1,t:'18:00–18:20',title:'Ужин',dir:'meal'},
   {id:'tu-mb',   d:1,t:'18:20–19:30',title:'Музыкальная индустрия',dir:'brain',item:'industry',mb:1},
   {id:'tu-music',d:1,t:'19:30–20:30',title:'Новая музыка',note:'3 маленьких артиста и 1 легенда',dir:'brain',item:'newmusic'},
-  {id:'tu-room', d:1,t:'20:30–21:30',title:'Pinterest и комната',note:'Идеи для своего уголка',dir:'play',item:'vibe'},
-  {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books'},
+  {id:'tu-room', d:1,t:'20:30–21:30',title:'Pinterest и комната',note:'Идеи для своего уголка',dir:'play',item:'vibe',ff:0},
+  {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books',ff:0},
+  {id:'tu-ff',   d:1,t:'20:30–22:30',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
 
   // Ср · Explore
   {id:'we-yoga', d:2,t:'07:00–07:40',title:'Йога',note:'Дома',dir:'body',item:'yoga',keep:1},
@@ -787,9 +800,12 @@ const EVENTS = [
   {id:'we-bud',  d:2,t:'17:00–18:30',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',from:PAID_FROM},
   {id:'we-bud-x',d:2,t:'17:00–18:30',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',alt:'we-bud'},
   {id:'we-din',  d:2,t:'18:30–18:50',title:'Ужин',dir:'meal'},
-  {id:'we-learn',d:2,t:'18:50–20:00',title:'Саморазвитие',dir:'brain',item:'learn',topic:1},
-  {id:'we-vibe', d:2,t:'20:00–21:45',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe'},
-  {id:'we-diary',d:2,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
+  {id:'we-learn',d:2,t:'18:50–20:00',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,ff:0},
+  {id:'we-learn-ff',d:2,t:'18:50–19:45',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,ff:1},
+  {id:'we-vibe', d:2,t:'20:00–21:45',title:'Вайбкодинг',note:'Свой проект с Claude',dir:'play',item:'vibe',ff:0},
+  {id:'we-diary',d:2,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',ff:0},
+  {id:'we-ffdiary',d:2,t:'19:45–20:30',title:'Дневник',dir:'play',item:'journal',ff:1},
+  {id:'we-ff',   d:2,t:'20:30–22:30',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
 
   // Чт · People + DIY
   {id:'th-bf',   d:3,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
@@ -813,7 +829,7 @@ const EVENTS = [
   {id:'fr-film', d:4,t:'18:20–20:30',title:'Кино',note:'Премьера недели',dir:'play',item:'culture',from:PAID_FROM},
   {id:'fr-film-x',d:4,t:'18:20–20:30',title:'Фильм дома',note:'Из своего списка фильмов',dir:'play',item:'books',alt:'fr-film'},
   {id:'fr-bar',  d:4,t:'20:30–22:30',title:'Бар',note:'С подругой',dir:'people',item:'bars',from:PAID_FROM},
-  {id:'fr-bar-x',d:4,t:'20:30–22:30',title:'Фанфики',note:'Уютный вечер',dir:'play',item:'fanfic',alt:'fr-bar'},
+  {id:'fr-bar-x',d:4,t:'20:30–22:30',title:'Книга',note:'Уютный вечер',dir:'play',item:'books',alt:'fr-bar'},
 
   // Сб · Budapest day
   {id:'sa-bf',   d:5,t:'09:00–09:20',title:'Завтрак',dir:'meal'},
@@ -825,7 +841,7 @@ const EVENTS = [
   {id:'sa-bud',  d:5,t:'12:20–16:00',title:'Будапешт для гостей',note:'Место, которое покажешь друзьям. Кроме парламента',tag:'Budapest day',dir:'play',item:'budapest'},
   {id:'sa-ten',  d:5,t:'16:00–17:30',title:'Теннис',note:'На корте',dir:'body',item:'tennis',freq:'2w',par:0,from:PAID_FROM},
   {id:'sa-ten-x',d:5,t:'16:00–17:30',title:'Книга',note:'После прогулки, дома',dir:'play',item:'books',alt:'sa-ten'},
-  {id:'sa-fic',  d:5,t:'17:30–18:30',title:'Фанфики',dir:'play',item:'fanfic'},
+  {id:'sa-puz',  d:5,t:'17:30–18:30',title:'Murdoku',note:'Одна головоломка',dir:'play',item:'puzzles'},
   {id:'sa-din',  d:5,t:'18:30–18:50',title:'Ужин',dir:'meal'},
   {id:'sa-room', d:5,t:'18:50–20:45',title:'Pinterest и комната',note:'Идеи и обустройство уголка',dir:'play',item:'vibe'},
   {id:'sa-film', d:5,t:'20:45–22:30',title:'Фильм дома',dir:'play',item:'books'},
@@ -842,9 +858,12 @@ const EVENTS = [
   {id:'su-club', d:6,t:'17:00–18:30',title:'Читательский клуб',dir:'people',item:'club',freq:'m4',from:PAID_FROM},
   {id:'su-club-x',d:6,t:'17:00–18:30',title:'Саморазвитие',dir:'brain',item:'learn',topic:1,alt:'su-club'},
   {id:'su-din',  d:6,t:'18:30–18:50',title:'Ужин',dir:'meal'},
-  {id:'su-puz',  d:6,t:'18:50–20:00',title:'Судоку и кроссворд',dir:'play',item:'puzzles'},
-  {id:'su-film', d:6,t:'20:00–21:45',title:'Фильм дома',dir:'play',item:'books'},
-  {id:'su-diary',d:6,t:'21:45–22:30',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal'}
+  {id:'su-puz',  d:6,t:'18:50–20:00',title:'Судоку и кроссворд',dir:'play',item:'puzzles',ff:0},
+  {id:'su-film', d:6,t:'20:00–21:45',title:'Фильм дома',dir:'play',item:'books',ff:0},
+  {id:'su-diary',d:6,t:'21:45–22:30',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal',ff:0},
+  {id:'su-ffdiary',d:6,t:'18:50–19:45',title:'Дневник',note:'Итоги недели',dir:'play',item:'journal',ff:1},
+  {id:'su-ffpuz',d:6,t:'19:45–20:30',title:'Судоку и кроссворд',dir:'play',item:'puzzles',ff:1},
+  {id:'su-ff',   d:6,t:'20:30–22:30',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1}
 ];
 
 const TRACK = [
@@ -943,6 +962,12 @@ const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
 const START_ISO = iso(START);
 const fromIso = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
 const daysBetween = (a, b) => Math.round((fromIso(b) - fromIso(a)) / DAY_MS);
+const FF_EVERY = 3;   // фанфик волной: 1 неделя с фанфиком, потом 2 без
+function isFF(mon){
+  const w = D(weekKey(mon));
+  if (typeof w.ff === 'boolean') return w.ff;
+  const i = weekIdx(mon); return i >= 0 && i % FF_EVERY === 0;
+}
 const mbIdx = mon => Math.max(0, weekIdx(mon)) % 4;
 const topicIdx = mon => Math.max(0, weekIdx(mon)) % TOPICS.length;
 function rangeLabel(mon){
@@ -1063,8 +1088,12 @@ function ensureSpheres(){ const p = D('plan'); if (!Array.isArray(p.spheres) || 
 function migratePlan(){
   const p = D('plan');
   if (p.sv === SV){   // Play → Soul (решение Анны), если сфера ещё не переименована вручную
-    const pl = Array.isArray(p.spheres) && p.spheres.find(x => x.id === 'play' && x.name === 'Play');
-    if (pl){ pl.name = 'Soul'; save('plan'); }
+    const pl = Array.isArray(p.spheres) && p.spheres.find(x => x.id === 'play');
+    let ch = false;
+    if (pl && pl.name === 'Play'){ pl.name = 'Soul'; ch = true; }
+    const fic = pl && pl.items.find(x => x.id === 'fanfic');   // фанфики волной: норма раз в 3 недели
+    if (fic && fic.every === 4){ fic.every = 21; if (!fic.note) fic.note = 'Волной: один фанфик на неделю, потом 2 недели перерыв'; ch = true; }
+    if (ch) save('plan');
     return;
   }
   if (!Array.isArray(p.spheres) && !p.hist) return;
@@ -1132,7 +1161,8 @@ function occurs(e, mon){
 function eventsFor(mon){
   const tpl = D('plan').tpl || {}, ov = D(weekKey(mon)).ov || {};
   const tE = tpl.edit || {}, tA = tpl.add || {}, wE = ov.edit || {}, wA = ov.add || {};
-  const list = [], keep = e => { e.dir = dirOf(e.dir); if (!e.del && (e.once || occurs(e, mon))) list.push(e); };
+  const ffw = isFF(mon);
+  const list = [], keep = e => { e.dir = dirOf(e.dir); if ((e.ff === 1 && !ffw) || (e.ff === 0 && ffw)) return; if (!e.del && (e.once || occurs(e, mon))) list.push(e); };
   for (const b of EVENTS){ let e = mergeEv(b, tE[b.id]); e.origin = 'base'; if (wE[b.id]){ e = mergeEv(e, wE[b.id]); e.once = 1; } keep(e); }
   for (const id in tA){ let e = {...tA[id], id, origin:'tpl', timeSet:1}; if (wE[id]){ e = mergeEv(e, wE[id]); e.once = 1; } keep(e); }
   for (const id in wA) keep({...wA[id], id, origin:'week', once:1, timeSet:1});
@@ -1248,6 +1278,7 @@ function card(ev, wk, w, mon, wide, pos){
   let tag = ev.tag || '', note = ev.note || '';
   if (ev.mb){ const i = mbIdx(mon); tag = `Неделя ${i+1} из 4`; note = `${MB[i][0]}: ${MB[i][1]}`; }
   if (ev.topic){ tag = 'Тема недели'; note = TOPICS[topicIdx(mon)]; }
+  if (ev.item === 'fanfic' && ev.ff === 1) note = D(wk).ffTitle || 'Выбери фанфик на неделю';
   if (ev.hobby){ const hb = HOBBIES.find(x => x.k === D('plan').hobby); note = hb ? hb.t : 'Хобби месяца ещё не выбрано'; }
   const t = esc(ev.title), ids = `data-id="${ev.id}" data-wk="${wk}"`;
   // в календаре-шкале размер карточки = длительность: xs — строка, s — название и время, m — полная карточка
@@ -1341,7 +1372,13 @@ function vWeek(){
   const sel = S.selDay ?? (isCur ? tIdx : 0);
   const nowM = S.now.getHours()*60 + S.now.getMinutes(), showNow = isCur && nowM >= DAY_FROM && nowM <= DAY_TO;
 
-  let h = '<div class="daypills">';
+  const ffw = isFF(mon);
+  let nextFF = null; for (let i = 1; i <= 8 && !nextFF; i++){ const m2 = addDays(mon, 7 * i); if (isFF(m2)) nextFF = m2; }
+  let h = `<div class="ffbar${ffw ? ' on' : ''}"><span class="chip-ic hue-pink">${icon('book')}</span>
+    ${ffw ? `<b>Фанфик-неделя</b><input id="ff-title" class="ff-input" data-wk="${wk}" placeholder="Какой фанфик читаешь?" value="${esc(w.ffTitle || '')}" autocomplete="off" aria-label="Фанфик недели">`
+          : `<span><b>Без фанфика.</b> Следующая фанфик-неделя: ${nextFF ? rangeLabel(nextFF) : 'не запланирована'}</span>`}
+    <button class="mini" data-act="ff-toggle" data-wk="${wk}">${ffw ? 'Сделать обычной' : 'Сделать фанфик-неделей'}</button></div>`;
+  h += '<div class="daypills">';
   for (let d = 0; d < 7; d++){
     const dt = addDays(mon, d);
     h += `<button data-act="day" data-d="${d}" class="${d===sel ? 'on' : ''} ${isCur && d===tIdx ? 'is-today' : ''}" aria-pressed="${d===sel}">${DAYS_SHORT[d]}<b>${dt.getDate()}</b></button>`;
@@ -1791,6 +1828,7 @@ document.addEventListener('click', e => {
   else if (a === 'ef-del') deleteEvent();
   else if (a === 'ef-reset') resetEvent();
   else if (a === 'collapse') setCollapsed(!document.querySelector('.shell').classList.contains('is-collapsed'));
+  else if (a === 'ff-toggle'){ const w = D(b.dataset.wk); w.ff = !isFF(mondayFromKey(b.dataset.wk)); save(b.dataset.wk); render(); }
   else if (a === 'bad') openBad();
   else if (a === 'signout'){ if (window.firebase && firebase.apps.length) firebase.auth().signOut().then(() => location.reload()); }
   else if (a === 'budget-edit'){ S.budgetEdit = true; render(); }
@@ -1826,6 +1864,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('change', e => {
   const t = e.target;
+  if (t.id === 'ff-title'){ const w = D(t.dataset.wk); w.ffTitle = t.value.trim(); save(t.dataset.wk); render(); return; }
   if (t.dataset && t.dataset.field && t.dataset.sp){
     const s = ensureSpheres().find(x => x.id === t.dataset.sp); if (!s) return;
     const target = t.dataset.it ? s.items.find(x => x.id === t.dataset.it) : s; if (!target) return;
