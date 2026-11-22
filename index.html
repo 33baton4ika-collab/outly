@@ -750,15 +750,14 @@ const BANDS = [
 
 /* Базовая неделя: каждый пункт из сфер Анны, без «или» и без бытового. Работа — из дома 8–17.
    Дни собраны встык, без пауз. Еда короткая (20 мин), кроме обеда в будни 12–13 (он в сжатой работе).
-   Йога — ровно 20 минут (keep: календарь её не растягивает).
+   Йога — 07:00–07:40, полной карточкой (keep: календарь её не растягивает).
    item — пункт сферы; freq: 2w — раз в 2 недели, m1 — первая неделя месяца, m4 — последняя;
    from — с какой даты дело появляется (платное — с PAID_FROM); noteFrom — заметка видна с этой даты;
    alt — дело-замена: стоит в календаре, только когда дела alt в эту неделю нет. Дневник — минимум 45 минут. */
 const EVENTS = [
   // Пн · Body
-  {id:'mo-yoga', d:0,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga',keep:1},
-  {id:'mo-bf',   d:0,t:'07:20–07:40',title:'Завтрак',dir:'meal'},
-  {id:'mo-am',   d:0,t:'07:40–08:00',title:'Новая музыка за кофе',note:'Один новый артист',dir:'brain',item:'newmusic'},
+  {id:'mo-yoga', d:0,t:'07:00–07:40',title:'Йога',note:'Дома',dir:'body',item:'yoga',keep:1},
+  {id:'mo-bf',   d:0,t:'07:40–08:00',title:'Завтрак',dir:'meal'},
   {id:'mo-lunch',d:0,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'mo-pil',  d:0,t:'17:00–18:00',title:'Пилатес',note:'В студии',dir:'body',item:'pilates',from:PAID_FROM},
   {id:'mo-walk', d:0,t:'18:00–18:45',title:'Прогулка домой',note:'Подкаст в наушниках',dir:'body',item:'walk',ret:1},
@@ -782,9 +781,8 @@ const EVENTS = [
   {id:'tu-book', d:1,t:'21:30–22:30',title:'Книга',dir:'play',item:'books'},
 
   // Ср · Explore
-  {id:'we-yoga', d:2,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga',keep:1},
-  {id:'we-bf',   d:2,t:'07:20–07:40',title:'Завтрак',dir:'meal'},
-  {id:'we-am',   d:2,t:'07:40–08:00',title:'Статья за кофе',dir:'brain',item:'articles'},
+  {id:'we-yoga', d:2,t:'07:00–07:40',title:'Йога',note:'Дома',dir:'body',item:'yoga',keep:1},
+  {id:'we-bf',   d:2,t:'07:40–08:00',title:'Завтрак',dir:'meal'},
   {id:'we-lunch',d:2,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'we-bud',  d:2,t:'17:00–18:30',title:'Новое кафе в Будапеште',note:'Место, которое покажешь гостям',dir:'play',item:'budapest',from:PAID_FROM},
   {id:'we-bud-x',d:2,t:'17:00–18:30',title:'Новый район',note:'Прогулка: запомнить места, которые покажешь гостям',dir:'play',item:'budapest',alt:'we-bud'},
@@ -807,9 +805,8 @@ const EVENTS = [
   {id:'th-diary',d:3,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal'},
 
   // Пт · Night out
-  {id:'fr-yoga', d:4,t:'07:00–07:20',title:'Йога',note:'20 минут дома',dir:'body',item:'yoga',keep:1},
-  {id:'fr-bf',   d:4,t:'07:20–07:40',title:'Завтрак',dir:'meal'},
-  {id:'fr-am',   d:4,t:'07:40–08:00',title:'Плейлист на выходные',dir:'brain',item:'newmusic'},
+  {id:'fr-yoga', d:4,t:'07:00–07:40',title:'Йога',note:'Дома',dir:'body',item:'yoga',keep:1},
+  {id:'fr-bf',   d:4,t:'07:40–08:00',title:'Завтрак',dir:'meal'},
   {id:'fr-lunch',d:4,t:'12:00–13:00',title:'Обед',dir:'meal'},
   {id:'fr-walk', d:4,t:'17:00–18:00',title:'Прогулка вдоль Дуная',dir:'body',item:'walk'},
   {id:'fr-din',  d:4,t:'18:00–18:20',title:'Ужин',dir:'meal'},
@@ -1298,7 +1295,7 @@ function neglectHtml(limit){
 /* Календарь-шкала: карточка тянется ровно до своего времени.
    Будни: утро и вечер на честной шкале, работа сжата в две тонкие полосы вокруг обеда (как раньше).
    Выходные: весь день 07:00–22:30 на ровной шкале (в процентах высоты колонки). */
-const WD_SEGS = [[420, 480, 90], [480, 720, 40], [720, 780, 30], [780, 1020, 40], [1020, 1350, 495]]; // [с, до, высота px]
+const WD_SEGS = [[420, 480, 135], [480, 720, 40], [720, 780, 30], [780, 1020, 40], [1020, 1350, 495]]; // [с, до, высота px]
 const clampDay = m => Math.min(Math.max(m, DAY_FROM), DAY_TO);
 function yWD(m){
   m = clampDay(m); let y = 0;
