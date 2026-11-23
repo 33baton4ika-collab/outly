@@ -747,6 +747,7 @@ const ITEM_TRACK = {yoga:['sport'], pilates:['sport','out'], walk:['walk','out']
 /* Анна работает из дома. Дела вне дома: студия, корт, массаж, прогулки, город, кино, бары, люди.
    У дела можно явно поставить out: 1/0 (галочка «Вне дома» в форме), иначе — по пункту сферы */
 const OUT_ITEMS = ['pilates','tennis','massage','walk','budapest','culture','bars','network'];
+const isTask = ev => ev.dir !== 'meal' && ev.dir !== 'work';   // work — полоса работы вне 08–17, не дело
 const isOut = ev => ev.out !== undefined ? !!ev.out : OUT_ITEMS.includes(ev.item);
 const SPHERE_TRACK = {body:['sport'], brain:['learn'], play:[], people:['friends','out']};
 const MEAL = {id:'meal', name:'Еда', hue:'card', icon:'fork', items:[{text:'Завтрак'},{text:'Обед'},{text:'Ужин'},{text:'Перекус'}]};
@@ -785,13 +786,15 @@ const EVENTS = [
   {id:'mo-book', d:0,t:'21:00–21:45',title:'Книга',dir:'play',item:'books',ff:0},
   {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',ff:0},
   {id:'mo-ff',   d:0,t:'21:00–22:30',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
-  // 23.11 — план Анны на день: работа 13–14 и 16–17, прогулка в перерыве, звонок, вечер до 22:30
+  // 23.11 — план Анны на день: работа 13–14, 16–17 и 17:30–18:00, прогулка в перерыве, звонок, без английского,
+  // фанфик до сна. Дневник 20:30–21:30: Анна сказала до 21:00, продлён до фанфика — без дыры и не меньше 45 минут
   {id:'d1123-walk', on:'2026-11-23',d:0,t:'14:00–15:50',title:'Прогулка без цели',note:'Подкаст в наушниках',dir:'body',item:'walk'},
   {id:'d1123-call', on:'2026-11-23',d:0,t:'17:00–17:30',title:"The O'Neill Brothers Group Call",dir:'none'},
-  {id:'d1123-din',  on:'2026-11-23',d:0,t:'17:30–19:00',title:'Ужин',dir:'meal'},
-  {id:'d1123-sud',  on:'2026-11-23',d:0,t:'19:00–19:30',title:'Судоку',note:'Одна головоломка',dir:'play',item:'puzzles'},
-  {id:'d1123-diary',on:'2026-11-23',d:0,t:'19:30–20:15',title:'Дневник',dir:'play',item:'journal'},
-  {id:'d1123-eng',  on:'2026-11-23',d:0,t:'20:15–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english'},
+  {id:'d1123-work', on:'2026-11-23',d:0,t:'17:30–18:00',title:'Work',dir:'work'},
+  {id:'d1123-din',  on:'2026-11-23',d:0,t:'18:00–20:00',title:'Готовка и ужин',dir:'meal'},
+  {id:'d1123-sud',  on:'2026-11-23',d:0,t:'20:00–20:30',title:'Судоку',note:'Одна головоломка',dir:'play',item:'puzzles'},
+  {id:'d1123-diary',on:'2026-11-23',d:0,t:'20:30–21:30',title:'Дневник',dir:'play',item:'journal'},
+  {id:'d1123-ff',   on:'2026-11-23',d:0,t:'21:30–23:00',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
 
   // Вт · Brain
   {id:'tu-bf',   d:1,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
@@ -1162,7 +1165,7 @@ function mergeEv(base, ed){
   return e;
 }
 // План на конкретный день: дела с полем on стоят только в эту дату, а эти дела базовой недели в неё убираются
-const DAY_SKIP = {'2026-11-23': ['mo-walk', 'mo-pil-x', 'mo-din', 'mo-ffdiary', 'mo-eng-x']};
+const DAY_SKIP = {'2026-11-23': ['mo-walk', 'mo-pil-x', 'mo-din', 'mo-ffdiary', 'mo-eng-x', 'mo-ff']};
 function occurs(e, mon){
   const date = addDays(mon, e.d);
   if (e.on) return iso(date) === e.on;
@@ -1254,7 +1257,7 @@ function workBlocks(day){
   let blocks = [[WORK_FROM, WORK_TO]];
   for (const e of day){
     let [a, b] = evRange(e);
-    if (b <= WORK_FROM || a >= WORK_TO) continue;
+    if (b <= WORK_FROM || a >= WORK_TO || e.dir === 'work') continue;
     if (e.dir !== 'meal') b = Math.ceil(b / 30) * 30;
     blocks = blocks.flatMap(([x, y]) => (a >= y || b <= x) ? [[x, y]] : [[x, a], [b, y]].filter(([p, q]) => q - p >= 15));
   }
@@ -1282,7 +1285,7 @@ const trackOf = ev => {
 };
 function toggleEvent(wk, id){
   const mon = mondayFromKey(wk), ev = eventsFor(mon).find(e => e.id === id);
-  if (!ev || ev.dir === 'meal') return;
+  if (!ev || !isTask(ev)) return;
   const w = D(wk), date = iso(addDays(mon, ev.d)), on = !(w.done && w.done[id]);
   w.done = w.done || {};
   if (on){ w.done[id] = 1; trackOf(ev).forEach(k => setTick(w, k, ev.d, 1)); } else delete w.done[id];
@@ -1330,7 +1333,7 @@ function card(ev, wk, w, mon, wide, pos){
 const freqText = ev => ev.once ? ' · разово' : ev.freq === '2w' ? ' · раз в 2 недели' : (ev.freq === 'm1' || ev.freq === 'm4') ? ' · раз в месяц' : '';
 const mealPill = (ev, wk, wide) =>
   `<button class="meal" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${wide ? ev.t + (ev.note ? ' · ' + esc(ev.note) : '') : ev.t.split('–')[0]}</span></button>`;
-const item = (ev, wk, w, mon, wide) => ev.dir === 'meal' ? mealPill(ev, wk, wide) : card(ev, wk, w, mon, wide);
+const item = (ev, wk, w, mon, wide) => ev.dir === 'meal' ? mealPill(ev, wk, wide) : ev.dir === 'work' ? strip(...evRange(ev), true) : card(ev, wk, w, mon, wide);
 const strip = (a, b, long) => `<div class="work-strip">${icon('laptop')}<span>${long ? 'Work · ' : ''}${hm(a)}–${hm(b)}</span></div>`;
 const checkRow = (on, attrs, text) =>
   `<button class="check ${on ? 'on' : ''}" ${attrs} aria-pressed="${on}"><span class="box">${icon('check')}</span><span class="check-t">${text}</span></button>`;
@@ -1355,7 +1358,7 @@ const WD_BASE = [[420, 480, 135], [480, 720, 0], [720, 780, 30], [780, 1020, 0],
 // Если в рабочее время стоит дело (прогулка в перерыве), это время идёт на обычной шкале 1.5 px/мин,
 // остальная работа сжата: 40 px на 4 часа, кусок не тоньше 30 px. Шкала общая для всех будней недели.
 function wdScale(evs){
-  const open = evs.filter(e => e.d < 5 && e.dir !== 'meal').map(evRange)
+  const open = evs.filter(e => e.d < 5 && isTask(e)).map(evRange)
     .filter(([a, b]) => b > WORK_FROM && a < WORK_TO).map(([a, b]) => [Math.max(a, WORK_FROM), Math.min(b, WORK_TO)])
     .sort((x, y) => x[0] - y[0]).reduce((acc, iv) => { const l = acc[acc.length - 1]; if (l && iv[0] <= l[1]) l[1] = Math.max(l[1], iv[1]); else acc.push(iv.slice()); return acc; }, []);
   const segs = [];
@@ -1408,6 +1411,7 @@ function block(ev, wk, w, mon, lay){
     const top = yWD(a); h = Math.max(yWD(b) - top, 22);
     style = `top:${top}px;height:${h - 3}px;${horiz}`;
   }
+  if (ev.dir === 'work') return `<div class="bg-work" style="${style}">${icon('laptop')}<span>Work · ${ev.t}</span></div>`;
   if (ev.dir === 'meal') return `<button class="meal meal--blk${h < 26 ? ' meal--thin' : ''}" style="${style}" data-act="edit" data-id="${ev.id}" data-wk="${wk}" aria-label="Изменить: ${esc(ev.title)}, ${ev.t}" title="${esc(ev.title)} · ${ev.t}">${icon('fork')}<span><b>${esc(ev.title)}</b>${ev.t.split('–')[0]}</span></button>`;
   return card(ev, wk, w, mon, false, {style, h});
 }
@@ -1463,7 +1467,7 @@ function vWeek(){
   }
   h += `<span><span class="chip-ic hue-pink">${icon('door')}</span>кружок в шапке дня: вышла из дома вне работы</span><span><span class="lg-fill"></span>цветная карточка — дело вне дома, бежевая — дома</span></div>`;
 
-  const plain = evs.filter(e => e.dir !== 'meal');
+  const plain = evs.filter(isTask);
   const sub = [`Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки <b>${score(w)}/10</b>`, `Music Business: <b>${MB[mbIdx(mon)][0]}</b>`];
   const neg = itemStats().filter(x => x.last && needsCare(x)).sort((a, b) => b.ratio - a.ratio)[0];
   if (neg) sub.push(`Давно не было: <b>${esc(neg.it.text)}</b>, ${agoText(neg.ago)}`);
@@ -1489,7 +1493,7 @@ function vToday(){
     const on = tickOn(w, t.k, d);
     return `<button class="tchip ${on ? 'on' : ''}" data-act="tick" data-k="${t.k}" data-d="${d}" data-wk="${wk}" aria-pressed="${on}"><span class="box">${icon('check')}</span>${t.short}</button>`;
   }).join('');
-  const plain = evs.filter(e => e.dir !== 'meal');
+  const plain = evs.filter(isTask);
   const html = `<div class="today">
     <section class="panel"><p class="eyebrow">${pre ? 'Первый день' : 'План на день'} · ${themeOf(d, mon)}</p><p class="lead">${pre ? 'Так будет выглядеть понедельник. Любое дело можно заменить заранее: нажми на него.' : 'Нажми на дело, чтобы заменить его на другое или поменять время.'}</p><div class="tl">${rows}</div></section>
     <div class="stack-v">
