@@ -785,6 +785,13 @@ const EVENTS = [
   {id:'mo-book', d:0,t:'21:00–21:45',title:'Книга',dir:'play',item:'books',ff:0},
   {id:'mo-diary',d:0,t:'21:45–22:30',title:'Дневник',dir:'play',item:'journal',ff:0},
   {id:'mo-ff',   d:0,t:'21:00–22:30',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
+  // 23.11 — план Анны на день: работа 13–14 и 16–17, прогулка в перерыве, звонок, вечер до 22:30
+  {id:'d1123-walk', on:'2026-11-23',d:0,t:'14:00–15:50',title:'Прогулка без цели',note:'Подкаст в наушниках',dir:'body',item:'walk'},
+  {id:'d1123-call', on:'2026-11-23',d:0,t:'17:00–17:30',title:"The O'Neill Brothers Group Call",dir:'none'},
+  {id:'d1123-din',  on:'2026-11-23',d:0,t:'17:30–19:00',title:'Ужин',dir:'meal'},
+  {id:'d1123-sud',  on:'2026-11-23',d:0,t:'19:00–19:30',title:'Судоку',note:'Одна головоломка',dir:'play',item:'puzzles'},
+  {id:'d1123-diary',on:'2026-11-23',d:0,t:'19:30–20:15',title:'Дневник',dir:'play',item:'journal'},
+  {id:'d1123-eng',  on:'2026-11-23',d:0,t:'20:15–21:00',title:'Английский сам',note:'Сериал на английском с субтитрами',dir:'brain',item:'english'},
 
   // Вт · Brain
   {id:'tu-bf',   d:1,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
@@ -1154,8 +1161,12 @@ function mergeEv(base, ed){
   if (ed.t && ed.t !== base.t) e.timeSet = 1;
   return e;
 }
+// План на конкретный день: дела с полем on стоят только в эту дату, а эти дела базовой недели в неё убираются
+const DAY_SKIP = {'2026-11-23': ['mo-walk', 'mo-pil-x', 'mo-din', 'mo-ffdiary', 'mo-eng-x']};
 function occurs(e, mon){
   const date = addDays(mon, e.d);
+  if (e.on) return iso(date) === e.on;
+  if ((DAY_SKIP[iso(date)] || []).includes(e.id)) return false;
   if (e.from && iso(date) < e.from) return false;
   const f = e.freq || 'w'; if (f === 'w') return true;
   if (f === '2w') return isoWeek(mon).w % 2 === (e.par || 0);
@@ -1197,7 +1208,7 @@ function eventsFor(mon){
    переезжает вплотную к следующему делу; иначе следующее дело начинается раньше.
    Не трогаем: время, заданное Анной (timeSet), и дела с keep (йога — ровно 20 минут) */
 function tighten(list){
-  const free = e => e && !e.timeSet && !e.keep;
+  const free = e => e && !e.timeSet && !e.keep && !e.on;
   const setT = (e, a, b) => { e.t = `${hm(a)}–${hm(b)}`; };
   for (let d = 0; d < 7; d++){
     const day = list.filter(e => e.d === d);
@@ -1237,11 +1248,20 @@ function isNow(ev, mon){
   const m = S.now.getHours()*60 + S.now.getMinutes(); const [a, b] = evRange(ev);
   return m >= a && m < b;
 }
-function workSeq(items){
-  const out = []; let cur = WORK_FROM;
-  for (const ev of items){ const [a, b] = evRange(ev); if (a > cur) out.push({strip:[cur, a]}); out.push({ev}); cur = Math.max(cur, b); }
-  if (cur < WORK_TO) out.push({strip:[cur, WORK_TO]});
-  return out;
+/* Работа в будни: 08:00–17:00 минус обед и дела, которые стоят в рабочее время.
+   После такого дела работа продолжается с ближайшего получаса (прогулка до 15:50 → Work с 16:00). */
+function workBlocks(day){
+  let blocks = [[WORK_FROM, WORK_TO]];
+  for (const e of day){
+    let [a, b] = evRange(e);
+    if (b <= WORK_FROM || a >= WORK_TO) continue;
+    if (e.dir !== 'meal') b = Math.ceil(b / 30) * 30;
+    blocks = blocks.flatMap(([x, y]) => (a >= y || b <= x) ? [[x, y]] : [[x, a], [b, y]].filter(([p, q]) => q - p >= 15));
+  }
+  return blocks;
+}
+function workSeq(day, items){       // «Сегодня»: полосы работы и дела рабочего времени по порядку
+  return workBlocks(day).map(s => ({strip:s, at:s[0]})).concat(items.map(ev => ({ev, at:evRange(ev)[0]}))).sort((x, y) => x.at - y.at);
 }
 
 /* ================= helpers on data ================= */
@@ -1331,16 +1351,36 @@ function neglectHtml(limit){
 /* Календарь-шкала: карточка тянется ровно до своего времени.
    Будни: утро и вечер на честной шкале, работа сжата в две тонкие полосы вокруг обеда (как раньше).
    Выходные: весь день 07:00–22:30 на ровной шкале (в процентах высоты колонки). */
-const WD_SEGS = [[420, 480, 135], [480, 720, 40], [720, 780, 30], [780, 1020, 40], [1020, 1350, 495]]; // [с, до, высота px]
+const WD_BASE = [[420, 480, 135], [480, 720, 0], [720, 780, 30], [780, 1020, 0], [1020, 1350, 495]]; // [с, до, высота px]; 0 — сжатая работа
+// Если в рабочее время стоит дело (прогулка в перерыве), это время идёт на обычной шкале 1.5 px/мин,
+// остальная работа сжата: 40 px на 4 часа, кусок не тоньше 30 px. Шкала общая для всех будней недели.
+function wdScale(evs){
+  const open = evs.filter(e => e.d < 5 && e.dir !== 'meal').map(evRange)
+    .filter(([a, b]) => b > WORK_FROM && a < WORK_TO).map(([a, b]) => [Math.max(a, WORK_FROM), Math.min(b, WORK_TO)])
+    .sort((x, y) => x[0] - y[0]).reduce((acc, iv) => { const l = acc[acc.length - 1]; if (l && iv[0] <= l[1]) l[1] = Math.max(l[1], iv[1]); else acc.push(iv.slice()); return acc; }, []);
+  const segs = [];
+  for (const [a, b, hh] of WD_BASE){
+    if (hh){ segs.push([a, b, hh]); continue; }
+    let cur = a;
+    const part = (s, t, o) => segs.push(o ? [s, t, (t - s) * 1.5] : [s, t, Math.max(Math.round((t - s) / 6), 30), 1]);
+    for (const [x, y] of open){ if (y <= a || x >= b) continue; const s = Math.max(x, a), t = Math.min(y, b); if (s > cur) part(cur, s, 0); part(s, t, 1); cur = t; }
+    if (cur < b) part(cur, b, 0);
+  }
+  return segs;
+}
+let WD_SEGS = wdScale([]);
 const clampDay = m => Math.min(Math.max(m, DAY_FROM), DAY_TO);
 function yWD(m){
   m = clampDay(m); let y = 0;
   for (const [a, b, hh] of WD_SEGS){ if (m >= b){ y += hh; continue; } y += (m - a) / (b - a) * hh; break; }
   return Math.round(y);
 }
-const WD_H = yWD(DAY_TO), WE_PX = 1.5;                          // выходной на телефоне: 1.5 px/мин
+let WD_H = yWD(DAY_TO);
+const WE_PX = 1.5;                                               // выходной на телефоне: 1.5 px/мин
+function setWD(evs){ WD_SEGS = wdScale(evs); WD_H = yWD(DAY_TO); }
 const pWE = m => +((clampDay(m) - DAY_FROM) / (DAY_TO - DAY_FROM) * 100).toFixed(3);
-const WD_TICKS = [7, 8, 12, 13, 17, 18, 19, 20, 21, 22];        // в сжатой работе часы 9–11 и 14–16 не подписываем
+// часы внутри сжатой работы не подписываем (обычно 9–11 и 14–16)
+const wdTicks = () => [...Array(16)].map((_, i) => 7 + i).filter(hr => !WD_SEGS.some(([a, b, , c]) => c && hr * 60 > a && hr * 60 < b));
 function lanesOf(items){             // если дела пересекаются — ставим их рядом
   const res = new Map(); let group = [], groupEnd = -1;
   const flush = () => {
@@ -1373,6 +1413,7 @@ function block(ev, wk, w, mon, lay){
 }
 function vWeek(){
   const mon = curMonday(), wk = weekKey(mon), w = D(wk), evs = eventsFor(mon);
+  setWD(evs); const WD_TICKS = wdTicks();
   const isCur = sameDay(mon, mondayOf(S.now)), tIdx = dayIdx(S.now);
   const sel = S.selDay ?? (isCur ? tIdx : 0);
   const nowM = S.now.getHours()*60 + S.now.getMinutes(), showNow = isCur && nowM >= DAY_FROM && nowM <= DAY_TO;
@@ -1408,8 +1449,7 @@ function vWeek(){
       ? [...Array(16)].map((_, i) => `<i class="hl" style="top:${pWE((7 + i) * 60)}%"></i>`).join('') +
         `<div class="bg-rest" style="top:0;height:calc(${pWE(WKND_FROM)}% - 3px)">${icon('sun')}<span>Утро без будильника</span></div>`
       : WD_TICKS.map(hr => `<i class="hl" style="top:${yWD(hr * 60)}px"></i>`).join('') +
-        `<div class="bg-work" style="top:${yWD(480)}px;height:${yWD(720) - yWD(480) - 3}px">${icon('laptop')}<span>Work · 08:00–12:00</span></div>` +
-        `<div class="bg-work" style="top:${yWD(780)}px;height:${yWD(1020) - yWD(780) - 3}px">${icon('laptop')}<span>Work · 13:00–17:00</span></div>`;
+        workBlocks(evs.filter(e => e.d === d)).map(([a, b]) => `<div class="bg-work" style="top:${yWD(a)}px;height:${yWD(b) - yWD(a) - 3}px">${icon('laptop')}<span>Work · ${hm(a)}–${hm(b)}</span></div>`).join('');
     inner += items.map(e => block(e, wk, w, mon, lay)).join('');
     if (showNow) inner += `<i class="now-line${d === tIdx ? ' is-today' : ''}" style="top:${we ? pWE(nowM) + '%' : yWD(nowM) + 'px'}"></i>`;
     h += `<div class="wk-cell tg-col${we ? ' we' : ''} ${d===sel ? 'is-sel' : ''}"${we ? '' : ` style="height:${WD_H}px"`}>${inner}</div>`;
@@ -1439,7 +1479,7 @@ function vToday(){
   let rows = '';
   const byBand = k => evs.filter(e => bandOf(e) === k);
   byBand('morning').forEach(e => { rows += row(e.t.split('–')[0], item(e, wk, w, mon, true)); });
-  if (d < 5) workSeq(byBand('work')).forEach(x => {
+  if (d < 5) workSeq(evs, byBand('work')).forEach(x => {
     rows += x.strip ? row(hm(x.strip[0]), strip(x.strip[0], x.strip[1], true)) : row(x.ev.t.split('–')[0], item(x.ev, wk, w, mon, true));
   });
   ['after','evening'].forEach(k => byBand(k).forEach(e => { rows += row(e.t.split('–')[0], item(e, wk, w, mon, true)); }));
