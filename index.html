@@ -201,6 +201,7 @@ h1{margin:0;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.04
 .legend .chip-ic .ic{width:12px;height:12px}
 .legend .legend-t{color:var(--ink);font-weight:600}
 .legend .lg-fill{width:26px;height:16px;border-radius:5px;background:linear-gradient(90deg,var(--yellow) 0 50%,var(--card) 50% 100%);box-shadow:inset 0 0 0 1px var(--line-strong)}
+.legend .lg-free{background:var(--lilac)}
 .daypills{display:none}
 
 /* ---------- calendar timeline ---------- */
@@ -747,9 +748,11 @@ const ITEM_TRACK = {yoga:['sport'], pilates:['sport','out'], walk:['walk','out']
 /* Анна работает из дома. Дела вне дома: студия, корт, массаж, прогулки, город, кино, бары, люди.
    У дела можно явно поставить out: 1/0 (галочка «Вне дома» в форме), иначе — по пункту сферы */
 const OUT_ITEMS = ['pilates','tennis','massage','walk','budapest','culture','bars','network'];
-const isTask = ev => ev.dir !== 'meal' && ev.dir !== 'work';   // work — полоса работы вне 08–17, не дело
+// не дела (без кружка-отметки и вне «Сделано»): еда, полоса работы вне 08–17 (work), свободное время (free)
+const isTask = ev => !['meal', 'work', 'free'].includes(ev.dir);
 const isOut = ev => ev.out !== undefined ? !!ev.out : OUT_ITEMS.includes(ev.item);
 const SPHERE_TRACK = {body:['sport'], brain:['learn'], play:[], people:['friends','out']};
+const FREE = {id:'free', name:'Свободное время', hue:'lilac', icon:'heart', items:[{text:'Чай с соседкой'},{text:'Звонок маме'}]};
 const MEAL = {id:'meal', name:'Еда', hue:'card', icon:'fork', items:[{text:'Завтрак'},{text:'Обед'},{text:'Ужин'},{text:'Перекус'}]};
 const NO_SPHERE = {id:'none', name:'Без сферы', hue:'sage', icon:'star', every:7, items:[]};
 const HUES = ['yellow','blue','pink','sage','lilac'];
@@ -795,6 +798,11 @@ const EVENTS = [
   {id:'d1123-sud',  on:'2026-11-23',d:0,t:'20:00–20:30',title:'Судоку',note:'Одна головоломка',dir:'play',item:'puzzles'},
   {id:'d1123-diary',on:'2026-11-23',d:0,t:'20:30–21:30',title:'Дневник',dir:'play',item:'journal'},
   {id:'d1123-ff',   on:'2026-11-23',d:0,t:'21:30–23:00',title:'Фанфик недели',dir:'play',item:'fanfic',ff:1},
+  // 24.11 — свободное время, фильм, потом фанфик. Выпали прогулка, новая музыка (они есть в другие дни)
+  // и «Музыкальная индустрия» — единственная на неделе, поэтому она переехала на субботу 28.11 вместо книги
+  {id:'d1124-free', on:'2026-11-24',d:1,t:'17:00–18:30',title:'Свободное время',note:'Без плана: чай с соседкой, звонок маме',dir:'free'},
+  {id:'d1124-film', on:'2026-11-24',d:1,t:'18:30–20:30',title:'Фильм',dir:'play',item:'books'},
+  {id:'d1128-mb',   on:'2026-11-28',d:5,t:'16:00–17:30',title:'Музыкальная индустрия',dir:'brain',item:'industry',mb:1},
 
   // Вт · Brain
   {id:'tu-bf',   d:1,t:'07:00–07:20',title:'Завтрак',dir:'meal'},
@@ -1117,7 +1125,7 @@ function migratePlan(){
   p.hist = hist; p.spheres = DEFAULT_SPHERES.map(normSphere); p.sv = SV;
   save('plan');
 }
-function sphereOf(id){ if (id === 'meal') return MEAL; const k = dirOf(id); return spheresList().find(s => s.id === k) || NO_SPHERE; }
+function sphereOf(id){ if (id === 'meal') return MEAL; if (id === 'free') return FREE; const k = dirOf(id); return spheresList().find(s => s.id === k) || NO_SPHERE; }
 function histToggle(spId, date, on){
   const p = D('plan'); p.hist = p.hist || {};
   const arr = (p.hist[spId] || []).slice();
@@ -1165,7 +1173,11 @@ function mergeEv(base, ed){
   return e;
 }
 // План на конкретный день: дела с полем on стоят только в эту дату, а эти дела базовой недели в неё убираются
-const DAY_SKIP = {'2026-11-23': ['mo-walk', 'mo-pil-x', 'mo-din', 'mo-ffdiary', 'mo-eng-x', 'mo-ff']};
+const DAY_SKIP = {
+  '2026-11-23': ['mo-walk', 'mo-pil-x', 'mo-din', 'mo-ffdiary', 'mo-eng-x', 'mo-ff'],
+  '2026-11-24': ['tu-walk', 'tu-din', 'tu-mb', 'tu-music'],
+  '2026-11-28': ['sa-ten-x']
+};
 function occurs(e, mon){
   const date = addDays(mon, e.d);
   if (e.on) return iso(date) === e.on;
@@ -1312,9 +1324,9 @@ function card(ev, wk, w, mon, wide, pos){
   // в календаре-шкале размер карточки = длительность: xs — строка, s — название и время, m — полная карточка
   const sz = pos ? (pos.h < 42 ? 'xs' : pos.h < 88 ? 's' : 'm') : '';
   const small = sz === 'xs' || sz === 's';
-  const cls = ['ev', isOut(ev) ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : '', sz ? 'ev--' + sz : '', now ? 'is-now' : ''].join(' ');
+  const cls = ['ev', ev.dir === 'free' ? 'is-fill fill-lilac' : isOut(ev) ? `is-fill fill-${sp.hue}` : '', done ? 'is-done' : '', wide ? 'ev--wide' : '', sz ? 'ev--' + sz : '', now ? 'is-now' : ''].join(' ');
   const ic = `<span class="chip-ic${small ? ' sm' : ''} hue-${sp.hue}" title="${esc(sp.name)}">${icon(sp.icon)}</span>`;
-  const chk = `<button class="ev-check${small ? ' sm' : ''}" data-act="ev" ${ids} aria-pressed="${done}" aria-label="${done ? 'Снять отметку' : 'Отметить как сделанное'}: ${t}">${icon('check')}</button>`;
+  const chk = !isTask(ev) ? '' : `<button class="ev-check${small ? ' sm' : ''}" data-act="ev" ${ids} aria-pressed="${done}" aria-label="${done ? 'Снять отметку' : 'Отметить как сделанное'}: ${t}">${icon('check')}</button>`;
   const ttl = `<h3 class="ev-title"><button data-act="edit" ${ids} aria-label="Изменить: ${t}">${t}</button></h3>`;
   const time = `<p class="ev-time">${ev.t}${freqText(ev)}</p>`;
   const attrs = `class="${cls}" data-act="edit" ${ids}${pos ? ` style="${pos.style}" title="${t} · ${ev.t}"` : ''}`;
@@ -1358,7 +1370,7 @@ const WD_BASE = [[420, 480, 135], [480, 720, 0], [720, 780, 30], [780, 1020, 0],
 // Если в рабочее время стоит дело (прогулка в перерыве), это время идёт на обычной шкале 1.5 px/мин,
 // остальная работа сжата: 40 px на 4 часа, кусок не тоньше 30 px. Шкала общая для всех будней недели.
 function wdScale(evs){
-  const open = evs.filter(e => e.d < 5 && isTask(e)).map(evRange)
+  const open = evs.filter(e => e.d < 5 && e.dir !== 'meal' && e.dir !== 'work').map(evRange)
     .filter(([a, b]) => b > WORK_FROM && a < WORK_TO).map(([a, b]) => [Math.max(a, WORK_FROM), Math.min(b, WORK_TO)])
     .sort((x, y) => x[0] - y[0]).reduce((acc, iv) => { const l = acc[acc.length - 1]; if (l && iv[0] <= l[1]) l[1] = Math.max(l[1], iv[1]); else acc.push(iv.slice()); return acc; }, []);
   const segs = [];
@@ -1465,7 +1477,7 @@ function vWeek(){
     const mine = evs.filter(e => e.dir === s.id);
     h += `<span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)} <em>${mine.filter(e => isDone(w, e.id)).length}/${mine.length}</em></span>`;
   }
-  h += `<span><span class="chip-ic hue-pink">${icon('door')}</span>кружок в шапке дня: вышла из дома вне работы</span><span><span class="lg-fill"></span>цветная карточка — дело вне дома, бежевая — дома</span></div>`;
+  h += `<span><span class="chip-ic hue-pink">${icon('door')}</span>кружок в шапке дня: вышла из дома вне работы</span><span><span class="lg-fill"></span>цветная карточка — дело вне дома, бежевая — дома</span><span><span class="lg-fill lg-free"></span>сиреневая — свободное время</span></div>`;
 
   const plain = evs.filter(isTask);
   const sub = [`Сделано <b>${plain.filter(e => isDone(w, e.id)).length} из ${plain.length}</b>`, `Привычки <b>${score(w)}/10</b>`, `Music Business: <b>${MB[mbIdx(mon)][0]}</b>`];
@@ -1727,7 +1739,7 @@ function openEventForm(o){
   cur.out = ev ? isOut(ev) : OUT_ITEMS.includes(cur.item);
   const [from, to] = cur.t.split('–');
   S.edit = {mode:o.mode, wk:o.wk, id:o.id, origin: ev ? ev.origin : null, d};
-  const dirOpts = sph.concat([MEAL]).map(s => `<label class="opt"><input type="radio" name="dir" value="${s.id}" ${s.id === cur.dir ? 'checked' : ''}><span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)}</span></label>`).join('');
+  const dirOpts = sph.concat([FREE, MEAL]).map(s => `<label class="opt"><input type="radio" name="dir" value="${s.id}" ${s.id === cur.dir ? 'checked' : ''}><span><span class="chip-ic hue-${s.hue}">${icon(s.icon)}</span>${esc(s.name)}</span></label>`).join('');
   const dayOpts = o.mode === 'add' ? `<div class="fl" role="radiogroup" aria-labelledby="ef-day-l"><span class="fl-label" id="ef-day-l">День</span><div class="opts">${[0,1,2,3,4,5,6].map(i => `<label class="opt"><input type="radio" name="day" value="${i}" ${i === d ? 'checked' : ''}><span>${DAYS_SHORT[i]} ${addDays(mon, i).getDate()}</span></label>`).join('')}</div></div>` : '';
   const showScope = !(o.mode === 'edit' && ev.origin === 'week');
   const scope = showScope ? `<div class="fl" role="radiogroup" aria-labelledby="ef-scope-l"><span class="fl-label" id="ef-scope-l">Как часто</span><div class="opts">
